@@ -1453,6 +1453,36 @@ machine_at_tomahawk_init(const machine_t *model)
 }
 
 int
+machine_at_tx97xv_init(const machine_t *model)
+{
+    int ret;
+
+    ret = bios_load_linear("roms/machines/tx97xv/BIOS.ROM",
+                           0x000c0000, 262144, 0);
+
+    if (bios_only || !ret)
+        return ret;
+
+    machine_at_common_init_ex(model, 2);
+
+    pci_init(PCI_CONFIG_TYPE_1);
+    pci_register_slot(0x00, PCI_CARD_NORTHBRIDGE, 0, 0, 0, 0);
+    pci_register_slot(0x01, PCI_CARD_SOUTHBRIDGE, 1, 2, 3, 4); /* PIIX4 */
+    pci_register_slot(0x09, PCI_CARD_NORMAL,      4, 1, 2, 3); /* Slot 04 */
+    pci_register_slot(0x0A, PCI_CARD_NORMAL,      3, 4, 1, 2); /* Slot 03 */
+    pci_register_slot(0x0B, PCI_CARD_NORMAL,      2, 3, 4, 1); /* Slot 02 */
+    pci_register_slot(0x0C, PCI_CARD_NORMAL,      1, 2, 3, 4); /* Slot 01 */
+    pci_register_slot(0x0D, PCI_CARD_VIDEO,       4, 0, 0, 0); /* Onboard, ATI video */
+
+    device_add(&i430tx_device);
+    device_add(&piix4_device);
+    device_add_params(&pc87307_device, (void *) (PCX730X_AMI | PCX7307_PC97307 | PCX730X_15C));
+    device_add(&sst_flash_29ee020_device);
+
+    return ret;
+}
+
+int
 machine_at_ym430tx_init(const machine_t *model)
 {
     int ret;
