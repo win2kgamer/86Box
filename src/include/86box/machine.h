@@ -957,6 +957,7 @@ extern int             machine_at_hot539_init(const machine_t *);
 
 /* VLSI SuperCore */
 extern int             machine_at_bravoms586_init(const machine_t *);
+extern int             machine_at_presario900586_init(const machine_t *);
 extern int             machine_at_g586vpmc_init(const machine_t *);
 extern int             machine_at_m54si_init(const machine_t *);
 extern int             machine_at_pb600_init(const machine_t *);
