@@ -84,6 +84,8 @@ phoenix_486_jumper_write(UNUSED(uint16_t addr), uint8_t val, void *priv)
         dev->jumper = val & 0xbf;
     else if (dev->type == 2) /* PB600 */
         dev->jumper = ((val & 0xbf) | 0x02);
+    else if (dev->type == 3) /* PB400 */
+        dev->jumper = val & 0xfb;
     else
         dev->jumper = val;
 }
@@ -106,7 +108,11 @@ phoenix_486_jumper_reset(void *priv)
         dev->jumper = 0x00;
     else if (dev->type == 2) /* PB600 */
         dev->jumper = 0x02;
-    else {
+    else if (dev->type == 3) { /* PB400 */
+        dev->jumper = 0xfb;
+        if (gfxcard[0] != 0x01)
+            dev->jumper &= 0xf3;
+    } else {
         dev->jumper = 0x9f;
         if (gfxcard[0] != 0x01)
             dev->jumper |= 0x40;
@@ -168,6 +174,20 @@ const device_t phoenix_486_jumper_pci_pb600_device = {
     .internal_name = "phoenix_486_jumper_pci_pb600",
     .flags         = 0,
     .local         = 2,
+    .init          = phoenix_486_jumper_init,
+    .close         = phoenix_486_jumper_close,
+    .reset         = phoenix_486_jumper_reset,
+    .available     = NULL,
+    .speed_changed = NULL,
+    .force_redraw  = NULL,
+    .config        = NULL
+};
+
+const device_t phoenix_486_jumper_pb400_device = {
+    .name          = "Phoenix 486 Jumper Readout (PB400)",
+    .internal_name = "phoenix_486_jumper_pb400",
+    .flags         = 0,
+    .local         = 3,
     .init          = phoenix_486_jumper_init,
     .close         = phoenix_486_jumper_close,
     .reset         = phoenix_486_jumper_reset,

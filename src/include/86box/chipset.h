@@ -229,6 +229,7 @@ extern const device_t dell_jumper_device;
 extern const device_t nec_mate_unk_device;
 
 extern const device_t phoenix_486_jumper_device;
+extern const device_t phoenix_486_jumper_pb400_device;
 extern const device_t phoenix_486_jumper_pci_device;
 extern const device_t phoenix_486_jumper_pci_pb600_device;
 

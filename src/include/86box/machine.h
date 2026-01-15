@@ -676,6 +676,9 @@ extern int             machine_at_ga486l_init(const machine_t *);
 /* OPTi 493 */
 extern int             machine_at_svc486wb_init(const machine_t *);
 
+/* OPTi 495SX */
+extern int             machine_at_pb400_init(const machine_t *);
+
 /* OPTi 498 */
 extern int             machine_at_mvi486_init(const machine_t *);
 
