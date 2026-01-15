@@ -387,12 +387,10 @@ extern void *                 machine_snd;
 /* Core functions. */
 extern int             machine_count(void);
 extern int             machine_available(int m);
-extern const char *    machine_getname(void);
-extern const char *    machine_getname_ex(int m);
+extern const char *    machine_getname(int m);
 extern const char *    machine_get_internal_name(void);
 extern const char *    machine_get_nvr_name(void);
 extern int             machine_get_machine_from_internal_name(const char *s);
-extern int             machine_get_machine_from_internal_name_ex(const char *s); /* returns -1 if internal name does not exist. */
 extern void            machine_init(void);
 #ifdef EMU_DEVICE_H
 extern const device_t *machine_get_kbc_device(int m);
@@ -1206,7 +1204,9 @@ extern int             machine_at_spitfire_init(const machine_t *);
 extern int             machine_at_ma30d_init(const machine_t *);
 
 /* i440EX */
+extern int             machine_at_brio83xx_init(const machine_t *);
 extern int             machine_at_p6i440e2_init(const machine_t *);
+extern int             machine_at_como_init(const machine_t *);
 
 /* i440BX */
 extern int             machine_at_bf6_init(const machine_t *);
@@ -1224,6 +1224,10 @@ extern int             machine_at_p3bf_init(const machine_t *);
 extern const device_t  ga686_device;
 #endif
 extern int             machine_at_ga686_init(const machine_t *);
+#ifdef EMU_DEVICE_H
+extern const device_t  ms6117_device;
+#endif
+extern int             machine_at_ms6117_init(const machine_t *);
 #ifdef EMU_DEVICE_H
 extern const device_t  ms6119_device;
 #endif

@@ -521,7 +521,7 @@ VMManagerSystem::setupVars()
     auto machine_name    = QString();
     int  i               = 0;
     int  ram_granularity = 0;
-    int  ci              = machine_get_machine_from_internal_name_ex(machine_config["machine"].toUtf8());
+    int  ci              = machine_get_machine_from_internal_name(machine_config["machine"].toUtf8());
     // Machine
     if (ci != -1 && machine_available(ci)) {
         machine_name    = machines[ci].name;
@@ -892,7 +892,7 @@ VMManagerSystem::setupVars()
                     net_type = "SLiRP";
                 else if (net_type == "pcap")
                     net_type = "PCap";
-                else if (net_type == "nmswitch")
+                else if ((net_type == "nlswitch") || (net_type == "nmswitch"))
                     net_type = tr("Local Switch");
                 else if (net_type == "nrswitch")
                     net_type = tr("Remote Switch");

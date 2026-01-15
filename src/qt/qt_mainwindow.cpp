@@ -65,6 +65,7 @@ extern int qt_nvr_save(void);
 #endif
 
 extern bool cpu_thread_running;
+extern bool fast_forward;
 };
 
 #include <QGuiApplication>
@@ -238,20 +239,26 @@ MainWindow::MainWindow(QWidget *parent)
 
     QTimer *ledKeyboardTimer = new QTimer(this);
     ledKeyboardTimer->setTimerType(Qt::CoarseTimer);
-    ledKeyboardTimer->setInterval(1);
+    ledKeyboardTimer->setInterval(20);
     connect(ledKeyboardTimer, &QTimer::timeout, this, [this]() {
+        uint8_t prev_caps = 255, prev_num = 255, prev_scroll = 255, prev_kana = 255;
         uint8_t caps, num, scroll, kana;
         keyboard_get_states(&caps, &num, &scroll, &kana);
 
-        if (num_label->isVisible())
+        if (num_label->isVisible() && prev_num != num)
             num_label->setPixmap(num ? this->num_icon.pixmap(QSize(16, 16)) : this->num_icon_off.pixmap(QSize(16, 16)));
-        if (caps_label->isVisible())
+        if (caps_label->isVisible() && prev_caps != caps)
             caps_label->setPixmap(caps ? this->caps_icon.pixmap(QSize(16, 16)) : this->caps_icon_off.pixmap(QSize(16, 16)));
-        if (scroll_label->isVisible())
+        if (scroll_label->isVisible() && prev_scroll != scroll)
             scroll_label->setPixmap(scroll ? this->scroll_icon.pixmap(QSize(16, 16)) : this->scroll_icon_off.pixmap(QSize(16, 16)));
 
-        if (kana_label->isVisible())
+        if (kana_label->isVisible() && prev_kana != kana)
             kana_label->setPixmap(kana ? this->kana_icon.pixmap(QSize(16, 16)) : this->kana_icon_off.pixmap(QSize(16, 16)));
+
+        prev_caps   = caps;
+        prev_num    = num;
+        prev_scroll = scroll;
+        prev_kana   = kana;
     });
     ledKeyboardTimer->start();
 
@@ -1011,6 +1018,18 @@ MainWindow::updateShortcuts()
     seq   = QKeySequence::fromString(acc_keys[accID].seq);
     ui->actionTake_screenshot->setShortcut(seq);
 
+    accID = FindAccelerator("raw_screenshot");
+    seq   = QKeySequence::fromString(acc_keys[accID].seq);
+    ui->actionTake_raw_screenshot->setShortcut(seq);
+
+    accID = FindAccelerator("copy_screenshot");
+    seq   = QKeySequence::fromString(acc_keys[accID].seq);
+    ui->actionCopy_screenshot->setShortcut(seq);
+
+    accID = FindAccelerator("copy_raw_screenshot");
+    seq   = QKeySequence::fromString(acc_keys[accID].seq);
+    ui->actionCopy_raw_screenshot->setShortcut(seq);
+
     accID = FindAccelerator("send_ctrl_alt_del");
     seq   = QKeySequence::fromString(acc_keys[accID].seq);
     ui->actionCtrl_Alt_Del->setShortcut(seq);
@@ -1022,6 +1041,10 @@ MainWindow::updateShortcuts()
     accID = FindAccelerator("hard_reset");
     seq   = QKeySequence::fromString(acc_keys[accID].seq);
     ui->actionHard_Reset->setShortcut(seq);
+
+    accID = FindAccelerator("fast_forward");
+    seq   = QKeySequence::fromString(acc_keys[accID].seq);
+    ui->actionFast_forward->setShortcut(seq);
 
     accID = FindAccelerator("fullscreen");
     seq   = QKeySequence::fromString(acc_keys[accID].seq);
@@ -1543,6 +1566,18 @@ MainWindow::eventFilter(QObject *receiver, QEvent *event)
                 || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("screenshot")) {
                 ui->actionTake_screenshot->trigger();
             }
+            if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("raw_screenshot")
+                || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("raw_screenshot")) {
+                ui->actionTake_raw_screenshot->trigger();
+            }
+            if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("copy_screenshot")
+                || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("copy_screenshot")) {
+                ui->actionCopy_screenshot->trigger();
+            }
+            if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("copy_raw_screenshot")
+                || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("copy_raw_screenshot")) {
+                ui->actionCopy_raw_screenshot->trigger();
+            }
             if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("fullscreen")
                 || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("fullscreen")) {
                 ui->actionFullscreen->trigger();
@@ -1550,6 +1585,10 @@ MainWindow::eventFilter(QObject *receiver, QEvent *event)
             if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("hard_reset")
                 || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("hard_reset")) {
                 ui->actionHard_Reset->trigger();
+            }
+            if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("fast_forward")
+                || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("fast_forward")) {
+                ui->actionFast_forward->trigger();
             }
             if ((QKeySequence) (ke->key() | (ke->modifiers() & ~Qt::KeypadModifier)) == FindAcceleratorSeq("send_ctrl_alt_del")
                 || (QKeySequence) (ke->key() | ke->modifiers()) == FindAcceleratorSeq("send_ctrl_alt_del")) {
@@ -2127,6 +2166,12 @@ MainWindow::on_actionUpdate_mouse_every_CPU_frame_triggered()
     ui->actionUpdate_mouse_every_CPU_frame->setChecked(force_constant_mouse > 0 ? true : false);
     mouse_update_sample_rate();
     config_save();
+}
+
+void
+MainWindow::on_actionFast_forward_triggered()
+{
+    fast_forward ^= 1;
 }
 
 void

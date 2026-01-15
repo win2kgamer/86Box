@@ -63,6 +63,7 @@ int             update_icons;
 int             kbd_req_capture;
 int             hide_status_bar;
 int             hide_tool_bar;
+bool            fast_forward = false;
 int             fixed_size_x = 640;
 int             fixed_size_y = 480;
 extern int      title_set;
@@ -596,10 +597,10 @@ main_thread(UNUSED(void *param))
 #endif
 
         old_time = new_time;
-        if (drawits > 0 && !dopause) {
+        if ((drawits > 0 || fast_forward) && !dopause) {
             /* Yes, so do one frame now. */
             drawits -= force_10ms ? 10 : 1;
-            if (drawits > 50)
+            if (drawits > 50 || fast_forward)
                 drawits = 0;
 
             /* Run a block of code. */
@@ -1104,6 +1105,8 @@ unix_executeLine(char *line)
                 "moeject <id> - eject image from MO drive <id>.\n\n"
                 "hardreset - hard reset the emulated system.\n"
                 "pause - pause the the emulated system.\n"
+                "fastfwd - toggle fast forward.\n"
+                "screenshot - save a screenshot.\n"
                 "fullscreen - toggle fullscreen.\n"
                 "version - print version and license information.\n"
                 "exit - exit " EMU_NAME ".\n");
@@ -1144,9 +1147,17 @@ unix_executeLine(char *line)
         } else if (strncasecmp(xargv[0], "fullscreen", 10) == 0) {
             video_fullscreen   = video_fullscreen ? 0 : 1;
             fullscreen_pending = 1;
+        } else if (strncasecmp(xargv[0], "screenshot", 10) == 0) {
+            startblit();
+            ++monitors[0].mon_screenshots_raw;
+            endblit();
+            device_force_redraw();
         } else if (strncasecmp(xargv[0], "pause", 5) == 0) {
             plat_pause(dopause ^ 1);
             printf("%s", dopause ? "Paused.\n" : "Unpaused.\n");
+        } else if (strncasecmp(xargv[0], "fastfwd", 7) == 0) {
+            fast_forward ^= 1;
+            printf("%s", fast_forward ? "Fast forward on.\n" : "Fast forward off.\n");
         } else if (strncasecmp(xargv[0], "hardreset", 9) == 0) {
             pc_reset_hard();
         } else if (strncasecmp(xargv[0], "cdload", 6) == 0 && cmdargc >= 3) {
