@@ -41,6 +41,18 @@
 */
 
 /*
+    PB400 bit meanings:
+    Bit 7 = ????
+    Bit 6 = ????
+    Bit 5 = ????
+    Bit 4 = ????
+    Bit 3 = Graphics card: 1 = on-board, 0 = standalone
+    Bit 2 = On-board graphics mode: 0 = normal, 1 = VESA
+    Bit 1 = ????
+    Bit 0 = ????
+*/
+
+/*
     PB600 bit meanings:
     Bit 7 = ???? (if 1 BIOS throws beep codes and won't POST)
     Bit 6 = Super I/O chip: 1 = disabled, 0 = enabled
