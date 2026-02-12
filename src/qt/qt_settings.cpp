@@ -32,6 +32,7 @@
 #include "qt_progsettings.hpp"
 #include "qt_harddrive_common.hpp"
 #include "qt_settings_bus_tracking.hpp"
+#include "qt_defs.hpp"
 
 extern "C" {
 #include <86box/86box.h>
@@ -42,6 +43,9 @@ extern "C" {
 #include <QCheckBox>
 #include <QApplication>
 #include <QStyle>
+
+#include <dirent.h>
+#include <unistd.h>
 
 class SettingsModel : public QAbstractListModel {
 public:
@@ -228,12 +232,43 @@ Settings::accept()
         QCheckBox  *chkbox = new QCheckBox(tr("Don't show this message again"));
         questionbox.setCheckBox(chkbox);
         chkbox->setChecked(!confirm_save);
-        QObject::connect(chkbox, &QCheckBox::stateChanged, [](int state) { confirm_save = (state == Qt::CheckState::Unchecked); });
+        QObject::connect(chkbox, &QCheckBox::CHECK_STATE_CHANGED, [](int state) { confirm_save = (state == Qt::CheckState::Unchecked); });
         questionbox.exec();
         if (questionbox.result() == QMessageBox::Cancel) {
             confirm_save = true;
             return;
         }
     }
+
     QDialog::accept();
+}
+
+static int
+plat_path_is_empty(char *path)
+{
+    int n            = 0;
+    DIR *dir         = opendir(path);
+    struct dirent *d;
+
+    if (dir == NULL)
+        /* Not a directory or doesn't exist. */
+        return 1;
+
+    while ((d = readdir(dir)) != NULL) {
+        if (++n > 2)
+            break;
+    }
+
+    closedir(dir);
+
+    return (n <= 2);
+}
+
+void
+Settings::reject()
+{
+    if (plat_path_is_empty(usr_path))
+        rmdir(usr_path);
+
+    QDialog::reject();
 }

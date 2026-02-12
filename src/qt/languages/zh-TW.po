@@ -2839,8 +2839,8 @@ msgstr "本地交換器"
 msgid "Remote Switch"
 msgstr "遠端交換器"
 
-msgid "Switch:"
-msgstr "交換器:"
+msgid "Shared secret:"
+msgstr "共用秘鑰:"
 
 msgid "Hub Mode"
 msgstr "集線器模式"
@@ -3023,4 +3023,7 @@ msgid "Fast forward"
 msgstr "快轉"
 
 msgid "To change the system directory, stop all running machines."
-msgstr ""
+msgstr "欲變更系統目錄，請先停止全部運行中的機器。"
+
+msgid "Raw"
+msgstr "原始"

@@ -2840,8 +2840,8 @@ msgstr "Локальний комутатор"
 msgid "Remote Switch"
 msgstr "Віддалений комутатор"
 
-msgid "Switch:"
-msgstr "Номер комутатора:"
+msgid "Shared secret:"
+msgstr "Спільний секрет:"
 
 msgid "Hub Mode"
 msgstr "Режим концентратора"
@@ -3018,10 +3018,13 @@ msgid "&Allow recompilation"
 msgstr "&Дозволити рекомпіляцію"
 
 msgid "&Fast forward"
-msgstr ""
+msgstr "&Перемотай вперед"
 
 msgid "Fast forward"
-msgstr ""
+msgstr "Перемотай вперед"
 
 msgid "To change the system directory, stop all running machines."
-msgstr ""
+msgstr "Щоб змінити системний каталог, зупиніть усі машини, що працюють."
+
+msgid "Raw"
+msgstr "Сирий"

@@ -2840,8 +2840,8 @@ msgstr "Lokalni prekidač"
 msgid "Remote Switch"
 msgstr "Udaljeni prekidač"
 
-msgid "Switch:"
-msgstr "Prekidač:"
+msgid "Shared secret:"
+msgstr "Zajednička tajna:"
 
 msgid "Hub Mode"
 msgstr "Način čvorišta"
@@ -3018,10 +3018,13 @@ msgid "&Allow recompilation"
 msgstr "&Omogući rekompilaciju"
 
 msgid "&Fast forward"
-msgstr ""
+msgstr "&Brzo naprijed"
 
 msgid "Fast forward"
-msgstr ""
+msgstr "Brzo naprijed"
 
 msgid "To change the system directory, stop all running machines."
-msgstr ""
+msgstr "Za promjenu sustavskog direktorija zaustavite sve pokrenute strojeve."
+
+msgid "Raw"
+msgstr "Neobrađeni podaci"
