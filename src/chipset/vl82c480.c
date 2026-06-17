@@ -9,8 +9,10 @@
  *          Implementation of the VLSI VL82c480 chipset.
  *
  * Authors: Miran Grca, <mgrca8@gmail.com>
+ *          win2kgamer
  *
- *          Copyright 2020 Miran Grca.
+ *          Copyright 2020-2026 Miran Grca.
+ *                         2026 win2kgamer
  */
 
 #ifdef ENABLE_VL82C48X_LOG
@@ -33,6 +35,8 @@
 #include <86box/nmi.h>
 #include <86box/port_92.h>
 #include <86box/chipset.h>
+#include <86box/smram.h>
+#include <86box/apm.h>
 #include <86box/log.h>
 
 #ifdef ENABLE_VL82C48X_LOG
@@ -56,6 +60,13 @@ typedef struct vl82c480_t {
     uint8_t  idx;
     uint8_t  regs[256];
     uint32_t banks[4];
+
+    int        is_green;
+    uint16_t   pmio;
+    uint8_t    pmio_set;
+    uint8_t    pmreg;
+
+    smram_t   *smram[4];
 
     void *  log; // New logging system
 } vl82c480_t;
@@ -146,6 +157,76 @@ vl82c480_recalc_banks(vl82c480_t *dev)
 }
 
 static void
+vl82c483_smram(vl82c480_t *dev)
+{
+    smram_disable_all();
+
+    if (dev->regs[0x53] & 0x80) {
+        if (dev->regs[0x0F] & 0x50) { /* C8000-CFFFF */
+            smram_enable(dev->smram[0], 0x000c8000, 0x000c8000, 0x8000, dev->regs[0x0F] & 0xA0, dev->regs[0x0F] & 0x50);
+        }
+        if (dev->regs[0x11] & 0x05) { /* E0000-E7FFF */
+            smram_enable(dev->smram[1], 0x000e0000, 0x000e0000, 0x8000, dev->regs[0x11] & 0x0A, dev->regs[0x11] & 0x05);
+        }
+        if (dev->regs[0x11] & 0x50) { /* E8000-EFFFF */
+            smram_enable(dev->smram[2], 0x000e8000, 0x000e8000, 0x8000, dev->regs[0x11] & 0xA0, dev->regs[0x11] & 0x50);
+        }
+    }
+
+    flushmmucache();
+}
+
+static void
+vl82c483_pm_write(uint16_t addr, uint8_t val, void *priv)
+{
+    vl82c480_t *dev = (vl82c480_t *) priv;
+
+    vl82c48x_log(dev->log, "VL82c483 SMI I/O: [W] (%04X) = %02X\n", addr, val);
+
+    /* Verify SMI Global Enable and Software SMI Enable are set */
+    if ((dev->regs[0x4C] & 0x80) && (dev->regs[0x40] & 0x80)) {
+        dev->regs[0x41] = 0x80;
+        dev->pmreg = val;
+        smi_raise();
+    }
+}
+
+static uint8_t
+vl82c483_pm_read(uint16_t addr, void *priv)
+{
+    vl82c480_t *dev = (vl82c480_t *) priv;
+    uint8_t ret = 0x00;
+
+    ret = dev->pmreg;
+    vl82c48x_log(dev->log, "VL82c483 SMI I/O: [R] (%04X) = %02X\n", addr, ret);
+
+    return ret;
+}
+
+static void
+vl82c483_set_pm_io(void *priv)
+{
+    vl82c480_t *dev = (vl82c480_t *) priv;
+    uint8_t highbyte = dev->regs[0x42];
+    uint8_t lowbyte = dev->regs[0x43];
+
+    /* Check for existing I/O mapping and remove it */
+    if (dev->pmio_set == 1) {
+        vl82c48x_log(dev->log, "VL82c48x: Removing SMI IO handler for %04X\n", dev->pmio);
+        io_removehandler(dev->pmio, 0x0001, vl82c483_pm_read, NULL, NULL, vl82c483_pm_write, NULL, NULL, dev);
+        dev->pmio_set = 0;
+    }
+
+    if ((highbyte != 0x00) | (lowbyte != 0x00)) {
+        dev->pmio = ((highbyte << 8) + lowbyte);
+        vl82c48x_log(dev->log, "VL82c48x: Adding SMI IO handler for %04X\n", dev->pmio);
+        io_sethandler(dev->pmio, 0x0001, vl82c483_pm_read, NULL, NULL, vl82c483_pm_write, NULL, NULL, dev);
+        dev->pmio_set = 1;
+    }
+
+}
+
+static void
 vl82c480_write(uint16_t addr, uint8_t val, void *priv)
 {
     vl82c480_t *dev = (vl82c480_t *) priv;
@@ -189,6 +270,39 @@ vl82c480_write(uint16_t addr, uint8_t val, void *priv)
                     case 0x0d ... 0x12:
                         dev->regs[dev->idx] = val;
                         vl82c480_recalc_shadow(dev);
+                        if (dev->is_green)
+                            vl82c483_smram(dev);
+                        break;
+                }
+            }
+            if ((dev->idx >= 0x25) && (dev->is_green)) { /* 483-specific registers */
+                switch (dev->idx) {
+                    case 0x40: /* SMI Enable Register */
+                        dev->regs[dev->idx] = val;
+                        break;
+                    case 0x41: /* SMI Status Register (Read/Clear) */
+                        dev->regs[dev->idx] = 0x00;
+                        break;
+                    case 0x42: /* SMI I/O port high byte */
+                    case 0x43: /* SMI I/O port low byte */
+                        dev->regs[dev->idx] = val;
+                        vl82c483_set_pm_io(dev);
+                        break;
+                    case 0x44: /* likely System Event Enable Register 1 */
+                    case 0x45: /* likely System Event Status Register 1 */
+                    case 0x46: /* likely System Event Enable Register 2 */
+                    case 0x47: /* likely System Event Status Register 2 */
+                    case 0x48: /* likely System Event Enable Register 3 */
+                    case 0x49: /* likely System Event Status Register 3 */
+                    case 0x4A: /* likely Programmable I/O Range Register high byte */
+                    case 0x4B: /* likely Programmable I/O Range Register low byte */
+                    case 0x4C: /* System Event Control Register/SMI Global Enable */
+                    case 0x51:
+                        dev->regs[dev->idx] = val;
+                        break;
+                    case 0x53: /* SMM Memory Control Register */
+                        dev->regs[dev->idx] = val;
+                        vl82c483_smram(dev);
                         break;
                 }
             }
@@ -218,6 +332,8 @@ vl82c480_read(uint16_t addr, void *priv)
         case 0xed:
             if (((dev->idx >= 0x01) && (dev->idx <= 0x19)) ||
                 ((dev->idx >= 0x20) && (dev->idx <= 0x24)))
+                ret = dev->regs[dev->idx];
+            if ((dev->idx >= 0x25) && (dev->is_green)) /* 483-specific registers */
                 ret = dev->regs[dev->idx];
             break;
 
@@ -250,6 +366,10 @@ vl82c480_close(void *priv)
         dev->log = NULL;
     }
 
+    smram_del(dev->smram[0]);
+    smram_del(dev->smram[1]);
+    smram_del(dev->smram[2]);
+
     free(dev);
 }
 
@@ -274,6 +394,9 @@ vl82c480_init(const device_t *info)
     if (info->local == 0x98)
         dev->regs[0x07] = 0x21;
     dev->regs[0x08] = 0x38;
+
+    if (info->local == 0x8C)
+        dev->is_green = 1;
 
     if (machines[machine].init == machine_at_monsoon_init) {
         if (ms >= 16384) {
@@ -301,6 +424,10 @@ vl82c480_init(const device_t *info)
 
     device_add(&port_92_pci_device);
 
+    dev->smram[0] = smram_add();
+    dev->smram[1] = smram_add();
+    dev->smram[2] = smram_add();
+
     return dev;
 }
 
@@ -323,6 +450,20 @@ const device_t vl82c486_device = {
     .internal_name = "vl82c486",
     .flags         = 0,
     .local         = 0x98,
+    .init          = vl82c480_init,
+    .close         = vl82c480_close,
+    .reset         = NULL,
+    .available     = NULL,
+    .speed_changed = NULL,
+    .force_redraw  = NULL,
+    .config        = NULL
+};
+
+const device_t vl82c483_device = {
+    .name          = "VLSI VL82c483",
+    .internal_name = "vl82c483",
+    .flags         = 0,
+    .local         = 0x8C,
     .init          = vl82c480_init,
     .close         = vl82c480_close,
     .reset         = NULL,

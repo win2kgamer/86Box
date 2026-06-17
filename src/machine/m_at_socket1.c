@@ -390,6 +390,35 @@ machine_at_d824_init(const machine_t *model)
     return ret;
 }
 
+/* VLSI 82C483 */
+int
+machine_at_opti4xxl_init(const machine_t *model)
+{
+    int ret;
+
+    ret = bios_load_linear("roms/machines/opti4xxl/4XXLEA08.ROM",
+                           0x000e0000, 131072, 0);
+
+    if (bios_only || !ret)
+        return ret;
+
+    machine_at_common_init(model);
+
+    device_add(&vl82c483_device); // VLSI VL82c483 chipset
+
+    if (gfxcard[0] == VID_INTERNAL)
+        device_add(machine_get_vid_device(machine));
+
+    device_add(&vl82c113_device); // VLSI VL82c114 Combo IO
+    device_add(&ide_isa_device);
+    device_add_params(&pc873xx_device, (void *) (PCX73XX_IDE_PRI | PCX730X_398));
+    device_add(&intel_flash_bxt_device);
+
+    device_add(&dell_jumper_opti4xxl_device); // Jumper readout
+
+    return ret;
+}
+
 /* VLSI 82C486 */
 int
 machine_at_pcs44c_init(const machine_t *model)

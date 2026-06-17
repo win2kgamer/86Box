@@ -215,6 +215,7 @@ extern const device_t via_vt8231_device;
 /* VLSI */
 extern const device_t vl82c480_device;
 extern const device_t vl82c486_device;
+extern const device_t vl82c483_device;
 extern const device_t vl82c59x_device;
 extern const device_t vl82c59x_compaq_device;
 extern const device_t vl82c59x_wildcat_device;
@@ -228,6 +229,7 @@ extern const device_t wd76c10_device;
 extern const device_t tulip_jumper_device;
 
 extern const device_t dell_jumper_device;
+extern const device_t dell_jumper_opti4xxl_device;
 
 extern const device_t nec_mate_unk_device;
 

@@ -5148,7 +5148,10 @@ gd54xx_init(const device_t *info)
             break;
 
         case CIRRUS_ID_CLGD5429:
-            romfn = BIOS_GD5429_PATH;
+            if (local & 0x200)
+                romfn = NULL;
+            else
+                romfn = BIOS_GD5429_PATH;
             break;
 
         case CIRRUS_ID_CLGD5432:
@@ -5246,7 +5249,9 @@ gd54xx_init(const device_t *info)
 
             gd54xx->vram_size = vram << 10;
         } else {
-            if ((id == CIRRUS_ID_CLGD5436) && (local & 0x200) && (local & 0x1000))
+            if ((id == CIRRUS_ID_CLGD5429) && (local & 0x200))
+                vram = 1;
+            else if ((id == CIRRUS_ID_CLGD5436) && (local & 0x200) && (local & 0x1000))
                 vram = 1;
             else
                 vram              = device_get_config_int("memory");
@@ -6484,6 +6489,21 @@ const device_t gd5429_vlb_device = {
     .speed_changed = gd54xx_speed_changed,
     .force_redraw  = gd54xx_force_redraw,
     .config        = gd5429_config
+};
+
+const device_t gd5429_vlb_onboard_device = {
+    .name          = "Cirrus Logic GD5429 (VLB) (On-Board)",
+    .internal_name = "cl_gd5429_vlb_onboard",
+    .flags         = DEVICE_VLB,
+    .local         = CIRRUS_ID_CLGD5429 | 0x200,
+    .init          = gd54xx_init,
+    .close         = gd54xx_close,
+    .reset         = gd54xx_reset,
+    .available     = NULL,
+    .speed_changed = gd54xx_speed_changed,
+    .force_redraw  = gd54xx_force_redraw,
+    .machine       = "Dell",
+    .config        = NULL
 };
 
 const device_t gd5430_vlb_device = {

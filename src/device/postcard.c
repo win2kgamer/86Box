@@ -220,9 +220,14 @@ postcard_init(UNUSED(const device_t *info))
 
     postcard_dell_mode = strstr(machines[machine].name, " Dell ") &&
                          (machine_get_chipset(machine) >= MACHINE_CHIPSET_INTEL_430FX);
-    if (postcard_dell_mode)
-        io_sethandler(is486 ? 0x00e0 : 0x00e4, 0x0001,
-                      NULL, NULL, NULL, NULL, NULL, postcard_writel, NULL);
+    if (postcard_dell_mode) {
+        if (machines[machine].init == machine_at_opti4xxl_init)
+            io_sethandler(0x00e4, 0x0001,
+                          NULL, NULL, NULL, NULL, NULL, postcard_writel, NULL);
+        else
+            io_sethandler(is486 ? 0x00e0 : 0x00e4, 0x0001,
+                          NULL, NULL, NULL, NULL, NULL, postcard_writel, NULL);
+    }
 
     return postcard_write;
 }

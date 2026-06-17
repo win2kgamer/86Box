@@ -28,6 +28,15 @@
  *                  - 1, 1, 0 = WS;
  *                  - 1, 1, 1 = GWS+.
  *
+ *
+ *          Dell OptiPlex 4xx:
+ *              - Bit 6: Password enable: 1 = disabled, 0 = enabled.
+ *              - Bit 3: VLB riser installed: 1 = present, 0 = absent.
+ *              - Bits 1-0:
+ *                  - 0, 0 = LN
+ *                  - 0, 1 = MTN
+ *                  - 1, 0 = MXN
+ *
  * Authors: Miran Grca, <mgrca8@gmail.com>
  *
  *          Copyright 2025 Miran Grca.
@@ -53,6 +62,7 @@
 typedef struct dell_jumper_t {
     uint8_t index;
     uint8_t regs[256];
+    uint8_t singleport;
 } dell_jumper_t;
 
 #ifdef ENABLE_DELL_JUMPER_LOG
@@ -108,18 +118,42 @@ dell_jumper_write(uint16_t addr, uint8_t val, void *priv)
         dev->index = val;
 }
 
+static void
+dell_jumper_1port_write(uint16_t addr, uint8_t val, void *priv)
+{
+    dell_jumper_t *dev = (dell_jumper_t *) priv;
+
+    dell_jumper_log("Dell Jumper: Write %02x\n", val);
+
+    dev->regs[0x00] = (val & 0xbc) | 0x08;
+}
+
 static uint8_t
 dell_jumper_read(uint16_t addr, void *priv)
 {
     const dell_jumper_t *dev = (dell_jumper_t *) priv;
     uint8_t                  ret = 0xff;
 
-    dell_jumper_log("Dell Jumper: Read %02x\n", dev->jumper);
-
     if (addr & 1)
         ret = dev->regs[dev->index];
     else
         ret = dev->index;
+
+    dell_jumper_log("Dell Jumper: Read %02x\n", ret);
+
+    return ret;
+}
+
+static uint8_t
+dell_jumper_1port_read(uint16_t addr, void *priv)
+{
+    const dell_jumper_t *dev = (dell_jumper_t *) priv;
+    uint8_t              ret = 0xff;
+
+    ret = dev->regs[0x00];
+
+    dell_jumper_log("Dell Jumper: Read %02x\n", ret);
+
 
     return ret;
 }
@@ -138,6 +172,9 @@ dell_jumper_reset(void *priv)
     else
         /* GXL, on-board audio absent, on-board NIC absent. */
         dev->regs[0x07] = 0x00;
+
+    if (dev->singleport)
+        dev->regs[0x00] = 0xbc;
 }
 
 static void
@@ -153,9 +190,15 @@ dell_jumper_init(const device_t *info)
 {
     dell_jumper_t *dev = (dell_jumper_t *) calloc(1, sizeof(dell_jumper_t));
 
+    if (info->local == 0x01)
+        dev->singleport = 1;
+
     dell_jumper_reset(dev);
 
-    io_sethandler(0x00e8, 0x0002, dell_jumper_read, NULL, NULL, dell_jumper_write, NULL, NULL, dev);
+    if (dev->singleport)
+        io_sethandler(0x00e8, 0x0001, dell_jumper_1port_read, NULL, NULL, dell_jumper_1port_write, NULL, NULL, dev);
+    else
+        io_sethandler(0x00e8, 0x0002, dell_jumper_read, NULL, NULL, dell_jumper_write, NULL, NULL, dev);
 
     return dev;
 }
@@ -165,6 +208,20 @@ const device_t dell_jumper_device = {
     .internal_name = "dell_jumper",
     .flags         = 0,
     .local         = 0,
+    .init          = dell_jumper_init,
+    .close         = dell_jumper_close,
+    .reset         = dell_jumper_reset,
+    .available     = NULL,
+    .speed_changed = NULL,
+    .force_redraw  = NULL,
+    .config        = NULL
+};
+
+const device_t dell_jumper_opti4xxl_device = {
+    .name          = "Dell Jumper Readout (OptiPlex 4xxL)",
+    .internal_name = "dell_jumper_opti4xxl",
+    .flags         = 0,
+    .local         = 0x01,
     .init          = dell_jumper_init,
     .close         = dell_jumper_close,
     .reset         = dell_jumper_reset,

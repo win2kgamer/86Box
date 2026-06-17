@@ -301,6 +301,7 @@ enum {
     MACHINE_CHIPSET_VLSI_SCAMP,
     MACHINE_CHIPSET_VLSI_VL82C480,
     MACHINE_CHIPSET_VLSI_VL82C481,
+    MACHINE_CHIPSET_VLSI_VL82C483,
     MACHINE_CHIPSET_VLSI_VL82C486,
     MACHINE_CHIPSET_VLSI_SUPERCORE,
     MACHINE_CHIPSET_VLSI_WILDCAT,
@@ -719,6 +720,9 @@ extern int             machine_at_vect486vl_init(const machine_t *);
 
 /* VLSI 82C481 */
 extern int             machine_at_d824_init(const machine_t *);
+
+/* VLSI 82C483 */
+extern int             machine_at_opti4xxl_init(const machine_t *);
 
 /* VLSI 82C486 */
 extern int             machine_at_pcs44c_init(const machine_t *);
