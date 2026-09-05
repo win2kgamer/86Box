@@ -195,6 +195,7 @@ static const SOUND_CARD sound_cards[] = {
     { &gus_max_device               },
     { &gus_ace_device               },
     { &gus_extreme_device           },
+    { &gus_pnp_device               },
     { &azt2320_device               },
     { &pasplus_device               },
     { &pas16_device                 },
