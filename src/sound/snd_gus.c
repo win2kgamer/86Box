@@ -290,8 +290,6 @@ typedef struct gus_t {
     uint8_t  iw_rev;
     uint16_t lfo_base;
     uint8_t  synth_upper[32];
-    uint16_t effects_high[32];
-    uint16_t effects_low[32];
     uint8_t  lfo_freq[32];
     uint8_t  lfo_vol[32];
     uint16_t r_offset[32];
@@ -305,6 +303,7 @@ typedef struct gus_t {
     uint8_t  lmc_dma_high;
     uint16_t lmc_dma_conf;
     uint8_t  gus_avoice;
+    uint64_t effects_addr[32];
 
     /* InterWave LFO processing */
     uint8_t  lfo_cur_voice       : 5;
@@ -661,11 +660,11 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
 
                 case 0x11: /* Synthesizer Effects Address High */
                     if (gus->type == GUS_INTERWAVE)
-                        gus->effects_high[gus->voice] = (gus->effects_high[gus->voice] & 0xFF00) | val;
+                        gus->effects_addr[gus->voice] = (gus->effects_addr[gus->voice] & 0x1FF00FFFF) | (val << 16);
                     break;
                 case 0x12: /* Synthesizer Effects Address Low */
                     if (gus->type == GUS_INTERWAVE)
-                        gus->effects_low[gus->voice] = (gus->effects_low[gus->voice] & 0xFF00) | val;
+                        gus->effects_addr[gus->voice] = (gus->effects_addr[gus->voice] & 0x1FFFFFF00) | val;
                     break;
                 case 0x13: /* Synthesizer Left Offset */
                     if (gus->type == GUS_INTERWAVE)
@@ -861,15 +860,16 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                         gus->start[gus->voice]  = (gus->start[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
                         gus->end[gus->voice]  = (gus->end[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
                         gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
+                        gus->effects_addr[gus->voice] = (gus->effects_addr[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
                     }
                     break;
                 case 0x11: /* Synthesizer Effects Address High */
                     if (gus->type == GUS_INTERWAVE)
-                        gus->effects_high[gus->voice] = (gus->effects_high[gus->voice] & 0xFF) | (val << 8);
+                        gus->effects_addr[gus->voice] = (gus->effects_addr[gus->voice] & 0x180FFFFFF) | ((val & 0x7F) << 24);
                     break;
                 case 0x12: /* Synthesizer Effects Address Low */
                     if (gus->type == GUS_INTERWAVE)
-                        gus->effects_low[gus->voice] = (gus->effects_low[gus->voice] & 0xFF) | (val << 8);
+                        gus->effects_addr[gus->voice] = (gus->effects_addr[gus->voice] & 0x1FFFF00FF) | (val << 8);
                     break;
                 case 0x13: /* Synthesizer Left Offset */
                     if (gus->type == GUS_INTERWAVE)
@@ -1577,11 +1577,11 @@ gus_read(uint16_t addr, void *priv)
 
                 case 0x91: /* Synthesizer Effects Address High */
                     if (gus->type == GUS_INTERWAVE)
-                        return (gus->effects_high[gus->voice] & 0xFF);
+                        return gus->effects_addr[gus->voice] >> 16;
                     break;
                 case 0x92: /* Synthesizer Effects Address Low */
                     if (gus->type == GUS_INTERWAVE)
-                        return (gus->effects_low[gus->voice] & 0xFF);
+                        return gus->effects_addr[gus->voice] & 0xFF;
                     break;
                 case 0x93: /* Synthesizer Left Offset */
                     if (gus->type == GUS_INTERWAVE)
@@ -1707,11 +1707,11 @@ gus_read(uint16_t addr, void *priv)
                     break;
                 case 0x91: /* Synthesizer Effects Address High */
                     if (gus->type == GUS_INTERWAVE)
-                        return (gus->effects_high[gus->voice] & 0xFF00) >> 8;
+                        return gus->effects_addr[gus->voice] >> 24;
                     break;
                 case 0x92: /* Synthesizer Effects Address Low */
                     if (gus->type == GUS_INTERWAVE)
-                        return (gus->effects_low[gus->voice] & 0xFF00) >> 8;
+                        return gus->effects_addr[gus->voice] >> 8;
                     break;
                 case 0x93: /* Synthesizer Left Offset */
                     if (gus->type == GUS_INTERWAVE)
