@@ -136,12 +136,12 @@ typedef struct gus_t {
     uint32_t addr;
     uint32_t dmaaddr;
     int      voice;
-    uint32_t start[32];
-    uint32_t end[32];
-    uint32_t cur[32];
-    uint32_t startx[32];
-    uint32_t endx[32];
-    uint32_t curx[32];
+    uint64_t start[32];
+    uint64_t end[32];
+    uint64_t cur[32];
+    uint64_t startx[32];
+    uint64_t endx[32];
+    uint64_t curx[32];
     int      rstart[32];
     int      rend[32];
     int      rcur[32];
@@ -607,26 +607,26 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                 case 2: /*Start addr high*/
                     gus->startx[gus->voice] = (gus->startx[gus->voice] & 0xF807F) | (val << 7);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0xFF00FFFF) | (val << 16);
+                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x1FF00FFFF) | (val << 16);
                     else
                         gus->start[gus->voice]  = (gus->start[gus->voice] & 0x1F00FFFF) | (val << 16);
                     break;
                 case 3: /*Start addr low*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->start[gus->voice] = (gus->start[gus->voice] & 0xFFFFFF00) | val;
+                        gus->start[gus->voice] = (gus->start[gus->voice] & 0x1FFFFFF00) | val;
                     else
                         gus->start[gus->voice] = (gus->start[gus->voice] & 0x1FFFFF00) | val;
                     break;
                 case 4: /*End addr high*/
                     gus->endx[gus->voice] = (gus->endx[gus->voice] & 0xF807F) | (val << 7);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0xFF00FFFF) | (val << 16);
+                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x1FF00FFFF) | (val << 16);
                     else
                         gus->end[gus->voice]  = (gus->end[gus->voice] & 0x1F00FFFF) | (val << 16);
                     break;
                 case 5: /*End addr low*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->end[gus->voice] = (gus->end[gus->voice] & 0xFFFFFF00) | val;
+                        gus->end[gus->voice] = (gus->end[gus->voice] & 0x1FFFFFF00) | val;
                     else
                         gus->end[gus->voice] = (gus->end[gus->voice] & 0x1FFFFF00) | val;
                     break;
@@ -641,14 +641,14 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
 
                 case 0xA: /*Current addr high*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0xFF00FFFF) | (val << 16);
+                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x1FF00FFFF) | (val << 16);
                     else
                         gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x1F00FFFF) | (val << 16);
                     gus->curx[gus->voice] = (gus->curx[gus->voice] & 0xF807F00) | ((val << 7) << 8);
                     break;
                 case 0xB: /*Current addr low*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->cur[gus->voice] = (gus->cur[gus->voice] & 0xFFFFFF00) | val;
+                        gus->cur[gus->voice] = (gus->cur[gus->voice] & 0x1FFFFFF00) | val;
                     else
                         gus->cur[gus->voice] = (gus->cur[gus->voice] & 0x1FFFFF00) | val;
                     break;
@@ -768,28 +768,28 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                 case 2: /*Start addr high*/
                     gus->startx[gus->voice] = (gus->startx[gus->voice] & 0x07FFF) | (val << 15);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x80FFFFFF) | ((val & 0x7F) << 24);
+                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x180FFFFFF) | ((val & 0x7F) << 24);
                     else
                         gus->start[gus->voice]  = (gus->start[gus->voice] & 0x00FFFFFF) | ((val & 0x1F) << 24);
                     break;
                 case 3: /*Start addr low*/
                     gus->startx[gus->voice] = (gus->startx[gus->voice] & 0xFFF80) | (val & 0x7F);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0xFFFF00FF) | (val << 8);
+                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x1FFFF00FF) | (val << 8);
                     else
                         gus->start[gus->voice]  = (gus->start[gus->voice] & 0x1FFF00FF) | (val << 8);
                     break;
                 case 4: /*End addr high*/
                     gus->endx[gus->voice] = (gus->endx[gus->voice] & 0x07FFF) | (val << 15);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x80FFFFFF) | ((val & 0x7F) << 24);
+                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x180FFFFFF) | ((val & 0x7F) << 24);
                     else
                         gus->end[gus->voice]  = (gus->end[gus->voice] & 0x00FFFFFF) | ((val & 0x1F) << 24);
                     break;
                 case 5: /*End addr low*/
                     gus->endx[gus->voice] = (gus->endx[gus->voice] & 0xFFF80) | (val & 0x7F);
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0xFFFF00FF) | (val << 8);
+                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x1FFFF00FF) | (val << 8);
                     else
                         gus->end[gus->voice]  = (gus->end[gus->voice] & 0x1FFF00FF) | (val << 8);
                     break;
@@ -809,14 +809,14 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
 
                 case 0xA: /*Current addr high*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x80FFFFFF) | ((val & 0x7F) << 24);
+                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x180FFFFFF) | ((val & 0x7F) << 24);
                     else
                         gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x00FFFFFF) | ((val & 0x1F) << 24);
                     gus->curx[gus->voice] = (gus->curx[gus->voice] & 0x07FFF00) | ((val << 15) << 8);
                     break;
                 case 0xB: /*Current addr low*/
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced)
-                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0xFFFF00FF) | (val << 8);
+                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x1FFFF00FF) | (val << 8);
                     else
                         gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x1FFF00FF) | (val << 8);
                     gus->curx[gus->voice] = (gus->curx[gus->voice] & 0xFFF8000) | ((val & 0x7F) << 8);
@@ -858,9 +858,9 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                 case 0x10: /* Synthesizer Upper Address */
                     if (gus->type == GUS_INTERWAVE) {
                         gus->synth_upper[gus->voice] = val;
-                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x7FFFFFFF) | ((val & 0x01) << 31);
-                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x7FFFFFFF) | ((val & 0x01) << 31);
-                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x7FFFFFFF) | ((val & 0x01) << 31);
+                        gus->start[gus->voice]  = (gus->start[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
+                        gus->end[gus->voice]  = (gus->end[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
+                        gus->cur[gus->voice]  = (gus->cur[gus->voice] & 0x7FFFFFFF) | ((val & 0x03) << 31);
                     }
                     break;
                 case 0x11: /* Synthesizer Effects Address High */
@@ -3660,6 +3660,7 @@ static const device_config_t gus_pnp_config[] = {
             { .description = "2 MB",   .value = 3 },
             { .description = "4 MB",   .value = 4 },
             { .description = "8 MB",   .value = 5 },
+            { .description = "16 MB",  .value = 6 },
             { NULL                                }
         },
         .bios           = { { 0 } }
