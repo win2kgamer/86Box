@@ -546,6 +546,8 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
     uint8_t    mixer_ch;
     uint8_t    mixer_lr;
 
+    uint8_t reset_old = gus->reset;
+
     gus_log(gus->log, "GUS write: port = %04X, val = %02X\n", addr, val);
 
     if ((addr == 0x388) || (addr == 0x389))
@@ -1091,7 +1093,6 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                     break;
 
                 case 0x4c: /*Reset*/
-                    uint8_t reset_old = gus->reset;
                     gus_log(gus->log, "GUS reset: new val = %02X\n", val);
                     gus->reset = val;
                     if (gus->type == GUS_INTERWAVE && !(reset_old & 0x01) && (val & 0x01)) {
