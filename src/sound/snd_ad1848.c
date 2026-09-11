@@ -760,7 +760,10 @@ ad1848_process_adpcm(ad1848_t *ad1848, int channel)
     if (ad1848->adpcm_pos++ & 1) {
         temp = ad1848->adpcm_data >> 4;
     } else {
-        ad1848->adpcm_data = ad1848_dma_channel_read(ad1848, ad1848->dma);
+        if ((ad1848->regs[9] & 0x41) == 0x41)
+            ad1848->adpcm_data = fifo_read(ad1848->play_fifo);
+        else
+            ad1848->adpcm_data = ad1848_dma_channel_read(ad1848, ad1848->dma);
         temp               = ad1848->adpcm_data & 0x0f;
     }
 
