@@ -179,6 +179,7 @@ typedef struct gus_t {
     uint8_t *ram;
     uint8_t *rom;
     uint32_t gus_end_ram;
+    uint32_t gus_end_rom;
 
     int irqnext;
 
@@ -1620,7 +1621,7 @@ gus_read(uint16_t addr, void *priv)
                 case 0x51: /* LMC 16-bit access */
                     if (gus->type == GUS_INTERWAVE) {
                         uint32_t addr16 = gus->addr & 0xfffffe;
-                        if (gus->lmc_ctrl & 0x02 && (addr16) <= 1048576)
+                        if (gus->lmc_ctrl & 0x02 && (addr16) <= gus->gus_end_rom)
                             val = gus->rom[addr16];
                         else if (addr16 < gus->gus_end_ram)
                             val = gus->ram[addr16];
@@ -1796,7 +1797,7 @@ gus_read(uint16_t addr, void *priv)
                 case 0x51: /* LMC 16-bit access */
                     if (gus->type == GUS_INTERWAVE) {
                         uint32_t addr16 = gus->addr & 0xfffffe;
-                        if (gus->lmc_ctrl & 0x02 && (addr16 + 1) <= 1048576)
+                        if (gus->lmc_ctrl & 0x02 && (addr16 + 1) <= gus->gus_end_rom)
                             val = gus->rom[addr16 + 1];
                         else if (addr16 + 1 < gus->gus_end_ram)
                             val = gus->ram[addr16 + 1];
@@ -1916,7 +1917,7 @@ gus_read(uint16_t addr, void *priv)
                 gus->addr &= (gus->gus_end_ram - 1);
             else if (!(gus->lmc_ctrl & 0x02))
                 gus->addr &= 0xfffff;
-            if (gus->type == GUS_INTERWAVE && gus->lmc_ctrl & 0x02  && gus->addr <= 1048576)
+            if (gus->type == GUS_INTERWAVE && gus->lmc_ctrl & 0x02  && gus->addr <= gus->gus_end_rom)
                 val = gus->rom[gus->addr];
             else if (gus->addr < gus->gus_end_ram)
                 val = gus->ram[gus->addr];
@@ -2248,13 +2249,13 @@ gus_poll_wave(void *priv)
                 if (!(tempfreq >> 10)) {
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x80)) {
                         /* Interpolate */
-                        if (((addr + 1) & gus_addr_mask) < gus->gus_end_ram)
+                        if (((addr + 1) & gus_addr_mask) < gus->gus_end_rom)
                             vl = (int16_t) (int8_t) ((gus->rom[(addr + 1) & gus_addr_mask] ^ 0x80) - 0x80) *
                                  (511 - (gus->cur[d] & 511));
                         else
                             vl = 0;
 
-                        if (((addr + 3) & gus_addr_mask) < gus->gus_end_ram)
+                        if (((addr + 3) & gus_addr_mask) < gus->gus_end_rom)
                             vl += (int16_t) (int8_t) ((gus->rom[(addr + 3) & gus_addr_mask] ^ 0x80) - 0x80) *
                                   (gus->cur[d] & 511);
 
@@ -2273,7 +2274,7 @@ gus_poll_wave(void *priv)
 
                         v = vl >> 9;
                     }
-                } else if (((addr + 1) & gus_addr_mask) < gus->gus_end_ram) {
+                } else if (((addr + 1) & gus_addr_mask) < ((gus->synth_mode[d] & 0x80) ? gus->gus_end_rom : gus->gus_end_ram)) {
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x80))
                         v = (int16_t) (int8_t) ((gus->rom[(addr + 1) & gus_addr_mask] ^ 0x80) - 0x80);
                     else
@@ -2290,13 +2291,13 @@ gus_poll_wave(void *priv)
                 if (!(tempfreq >> 10)) {
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x80)) {
                         /* Interpolate */
-                        if (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_ram)
+                        if (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_rom)
                             vl = ((int8_t) ((gus->rom[(gus->cur[d] >> 9) & gus_addr_mask] ^ 0x80) - 0x80)) *
                                            (511 - (gus->cur[d] & 511));
                         else
                             vl = 0;
 
-                        if ((((gus->cur[d] >> 9) + 1) & gus_addr_mask) < gus->gus_end_ram)
+                        if ((((gus->cur[d] >> 9) + 1) & gus_addr_mask) < gus->gus_end_rom)
                             vl += ((int8_t) ((gus->rom[((gus->cur[d] >> 9) + 1) & gus_addr_mask] ^ 0x80) - 0x80)) *
                                   (gus->cur[d] & 511);
 
@@ -2315,7 +2316,7 @@ gus_poll_wave(void *priv)
 
                         v = vl >> 9;
                     }
-                } else if (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_ram)
+                } else if (((gus->cur[d] >> 9) & gus_addr_mask) < ((gus->synth_mode[d] & 0x80) ? gus->gus_end_rom : gus->gus_end_ram))
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x80))
                         v = (int16_t) (int8_t) ((gus->rom[(gus->cur[d] >> 9) & gus_addr_mask] ^ 0x80) - 0x80);
                     else
@@ -3200,6 +3201,8 @@ gus_pnp_init(const device_t *info)
         fatal("gus_pnp_init(): Error reading data\n");
     fclose(rom_fp);
 
+    gus->gus_end_rom = 1048576;
+
     if (gus_ram != 0)
         gus->gus_end_ram = 1 << (18 + gus_ram);
     else
@@ -3651,7 +3654,7 @@ static const device_config_t gus_pnp_config[] = {
         .file_filter    = "",
         .spinner        = { 0 },
         .selection      = {
-            //{ .description = "None",   .value = 0 },
+            { .description = "None",   .value = 0 },
             { .description = "512 KB", .value = 1 },
             { .description = "1 MB",   .value = 2 },
             { .description = "2 MB",   .value = 3 },
