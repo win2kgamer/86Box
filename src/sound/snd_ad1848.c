@@ -392,7 +392,7 @@ ad1848_write(uint16_t addr, uint8_t val, void *priv)
                         else
                             timer_set_delay_u64(&ad1848->timer_count, TIMER_USEC);
                     }
-                    if (!ad1848->enable && (val & 0x41) == 0x41) {
+                    if (!ad1848->fifo_enable && (val & 0x41) == 0x41) {
                         ad1848->adpcm_pos = 0;
                         ad1848->adpcm_predictor[0] = ad1848->adpcm_predictor[1] = 0;
                         ad1848->adpcm_step_index[0] = ad1848->adpcm_step_index[1] = 0;
@@ -402,7 +402,8 @@ ad1848_write(uint16_t addr, uint8_t val, void *priv)
                         else
                             timer_set_delay_u64(&ad1848->fifo_play_timer, TIMER_USEC);
                     }
-                    ad1848->enable = ((val & 0x01) == 0x01);
+                    ad1848->enable = ((val & 0x41) == 0x01);
+                    ad1848->fifo_enable = ((val & 0x41) == 0x41);
                     if (!ad1848->rec_enable && (val & 0x82) == 0x02) {
                         ad1848->adpcm_pos = 0;
                         ad1848->adpcm_predictor[0] = ad1848->adpcm_predictor[1] = 0;
@@ -423,9 +424,11 @@ ad1848_write(uint16_t addr, uint8_t val, void *priv)
                     ad1848->rec_enable = ((val & 0x82) == 0x02);
                     if (!ad1848->enable) {
                         timer_disable(&ad1848->timer_count);
-                        timer_disable(&ad1848->fifo_play_timer);
-                        ad1848->out_l = ad1848->out_r = 0;
                     }
+                    if (!ad1848->fifo_enable)
+                        timer_disable(&ad1848->fifo_play_timer);
+                    if (!ad1848->fifo_enable && !ad1848->enable)
+                        ad1848->out_l = ad1848->out_r = 0;
                     if (!ad1848->rec_enable)
                         timer_disable(&ad1848->rec_timer_count);
                     break;
@@ -960,7 +963,7 @@ ad1848_pio_poll(void *priv)
 
     ad1848_update(ad1848);
 
-    if (ad1848->enable) {
+    if (ad1848->fifo_enable) {
         if (fifo_get_empty(ad1848->play_fifo)) {
             ad1848->regs[24] |= 0x01;
             ad1848->status |= 0x10;

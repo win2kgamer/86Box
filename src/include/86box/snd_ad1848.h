@@ -68,6 +68,7 @@ typedef struct ad1848_t {
     uint8_t wave_vol_mask;
 
     uint8_t enable : 1;
+    uint8_t fifo_enable : 1;
     uint8_t rec_enable : 1;
     uint8_t irq    : 4;
     uint8_t dma    : 3;
