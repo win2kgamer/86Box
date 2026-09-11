@@ -286,6 +286,7 @@ typedef struct gus_t {
     uint8_t  voice_autoinc;
     uint8_t  synth_global;
     uint8_t  iw_enhanced;
+    uint8_t  iw_rev;
     uint16_t lfo_base;
     uint8_t  synth_upper[32];
     uint16_t effects_high[32];
@@ -1169,7 +1170,7 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
 
                 case 0x5b: /*Version Number */
                     if (gus->type == GUS_INTERWAVE)
-                        gus->iveri = (val & 0x0f) | 0x10;
+                        gus->iveri = (val & 0x0f) | gus->iw_rev;
                     printf("GUS iveri reg write: val = %02X\n", val);
                     break;
 
@@ -1838,7 +1839,7 @@ gus_read(uint16_t addr, void *priv)
 
                 case 0x5b: /* Version Number */
                     if (gus->type == GUS_INTERWAVE)
-                        val = (gus->iveri & 0x0f) | 0x10;
+                        val = (gus->iveri & 0x0f) | gus->iw_rev;
                     else
                         val = 0;
                     return val;
@@ -3292,6 +3293,10 @@ gus_pnp_init(const device_t *info)
     gus->compat   = 0x1f;
     gus->dec_ctrl = 0x7f;
     gus->mpu401b  = 0x30;
+
+    /* Always report Revision B (B2 stepping) as seen on all known retail cards. Revision C (C0 stepping) was on Compaq/STB
+       UltraSound 32 cards. The Windows NT drivers bluescreen on rev C due to a bug in the beta driver. */
+    gus->iw_rev = 0x10;
 
     return gus;
 }
