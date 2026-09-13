@@ -2095,6 +2095,20 @@ gus_update(gus_t *gus)
     }
 }
 
+static int16_t
+iw_process_mulaw(uint8_t byte)
+{
+    byte        = ~byte;
+    int temp    = (((byte & 0x0f) << 3) + 0x84);
+    temp <<= ((byte & 0x70) >> 4);
+    temp = (byte & 0x80) ? (0x84 - temp) : (temp - 0x84);
+    if (temp > 32767)
+        return 32767;
+    else if (temp < -32768)
+        return -32768;
+    return (int16_t) temp;
+}
+
 void
 gus_poll_wave(void *priv)
 {
@@ -2237,6 +2251,7 @@ gus_poll_wave(void *priv)
     if ((gus->reset & 3) != 3)
         return;
     for (uint8_t d = 0; d < 32; d++) {
+        uint8_t mulaw = (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x40)) ? 1 : 0;
         if (!(gus->ctrl[d] & 3) && (gus->type != GUS_INTERWAVE || !gus->iw_enhanced || !(gus->synth_mode[d] & 0x02))) {
             uint16_t tempfreq = gus->freq[d];
             if (gus->ctrl[d] & 4) {
@@ -2309,13 +2324,19 @@ gus_poll_wave(void *priv)
                         v = vl >> 9;
                     } else {
                         /* Interpolate */
-                        if (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_ram)
+                        if (mulaw && (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_ram))
+                            vl = (((iw_process_mulaw(gus->ram[(gus->cur[d] >> 9) & gus_addr_mask]) ^ 0x80) - 0x80)) *
+                                           (511 - (gus->cur[d] & 511));
+                        else if (((gus->cur[d] >> 9) & gus_addr_mask) < gus->gus_end_ram)
                             vl = ((int8_t) ((gus->ram[(gus->cur[d] >> 9) & gus_addr_mask] ^ 0x80) - 0x80)) *
                                            (511 - (gus->cur[d] & 511));
                         else
                             vl = 0;
 
-                        if ((((gus->cur[d] >> 9) + 1) & gus_addr_mask) < gus->gus_end_ram)
+                        if (mulaw && ((((gus->cur[d] >> 9) + 1) & gus_addr_mask) < gus->gus_end_ram))
+                            vl += (((iw_process_mulaw(gus->ram[((gus->cur[d] >> 9) + 1) & gus_addr_mask]) ^ 0x80) - 0x80)) *
+                                  (gus->cur[d] & 511);
+                        else if ((((gus->cur[d] >> 9) + 1) & gus_addr_mask) < gus->gus_end_ram)
                             vl += ((int8_t) ((gus->ram[((gus->cur[d] >> 9) + 1) & gus_addr_mask] ^ 0x80) - 0x80)) *
                                   (gus->cur[d] & 511);
 
@@ -2324,6 +2345,8 @@ gus_poll_wave(void *priv)
                 } else if (((gus->cur[d] >> 9) & gus_addr_mask) < ((gus->synth_mode[d] & 0x80) ? gus->gus_end_rom : gus->gus_end_ram))
                     if (gus->type == GUS_INTERWAVE && gus->iw_enhanced && (gus->synth_mode[d] & 0x80))
                         v = (int16_t) (int8_t) ((gus->rom[(gus->cur[d] >> 9) & gus_addr_mask] ^ 0x80) - 0x80);
+                    else if (mulaw)
+                        v = ((iw_process_mulaw(gus->ram[(gus->cur[d] >> 9) & gus_addr_mask]) ^ 0x80) - 0x80);
                     else
                         v = (int16_t) (int8_t) ((gus->ram[(gus->cur[d] >> 9) & gus_addr_mask] ^ 0x80) - 0x80);
                 else
