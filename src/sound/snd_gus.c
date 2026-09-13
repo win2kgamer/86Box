@@ -57,6 +57,8 @@
 #include <86box/rom.h>
 
 #define GUS_PNP_ROM   "roms/sound/gravis/ultrasound_pnp.bin" /* Beavis Ultrasound ROM */
+#define GUS_PNP_NOCD  "roms/sound/gravis/GRAVNOCD.ROM" /* Gravis UltraSound PnP ROM, ATAPI CD-ROM disabled */
+#define GUS_COMPAQ_N  "roms/sound/gravis/COMPNEW.ROM" /* Compaq/STB UltraSound 32 ROM */
 #define IW_SAMPLE_ROM "roms/sound/gravis/IWROM.BIN" /* 1MB InterWave sample ROM */
 
 #ifdef ENABLE_GUS_LOG
@@ -310,6 +312,9 @@ typedef struct gus_t {
     uint8_t  lfo_cur_mode        : 1;
     uint8_t  lfo_cur_ramp_voice  : 5;
     uint8_t  lfo_cur_ramp_mode   : 1;
+
+    /* CD-ROM enable */
+    uint8_t  iw_atapi;
 
     void *   log; /* New logging system */
 } gus_t;
@@ -2822,7 +2827,8 @@ gus_pnp_config_changed(const uint8_t ld, isapnp_device_config_t *config, void *p
             gus->irq_ctrl = old_uici | new_irq1 | 0xc0;
             break;
         case 1: /* IDE CD-ROM */
-            ide_pnp_config_changed(0, config, (void *) 3);
+            if (gus->iw_atapi)
+                ide_pnp_config_changed(0, config, (void *) 3);
             break;
         case 2: /* Gameport */
             gameport_remap(gus->gameport, (config->activate && (config->io[0].base != ISAPNP_IO_DISABLED)) ? config->io[0].base : 0);
@@ -3265,7 +3271,7 @@ gus_pnp_init(const device_t *info)
 
     gus->uart_out = 1;
 
-    gus->type = info->local;
+    gus->type = info->local & 0x0f;
 
     gus->jumper = 0x06;
 
@@ -3290,9 +3296,22 @@ gus_pnp_init(const device_t *info)
     if (device_get_config_int("receive_input"))
         midi_in_handler(1, gus_input_msg, gus_input_sysex, gus);
 
+    uint8_t pnp_nocd  = info->local & 0x10;
+    uint8_t is_compaq = info->local & 0x20;
+
     const char *pnp_rom_file = NULL;
-    uint16_t   pnp_rom_len   = 512;
-    pnp_rom_file = GUS_PNP_ROM;
+    uint16_t pnp_rom_len;
+    if (is_compaq) {
+        pnp_rom_len  = 338;
+        pnp_rom_file = GUS_COMPAQ_N;
+    } else if (pnp_nocd) {
+        pnp_rom_len  = 500;
+        pnp_rom_file = GUS_PNP_NOCD;
+    } else {
+        pnp_rom_len  = 512;
+        pnp_rom_file = GUS_PNP_ROM;
+        gus->iw_atapi = 1;
+    }
 
     uint8_t *pnp_rom = NULL;
     FILE *fp = rom_fopen(pnp_rom_file, "rb");
@@ -3306,17 +3325,19 @@ gus_pnp_init(const device_t *info)
                                     NULL, NULL, NULL, gus);
 
     /* Add ISAPnP quaternary IDE controller */
-    device_add(&ide_qua_pnp_device);
-    other_ide_present++;
-    ide_remove_handlers(3);
+    if (gus->iw_atapi) {
+        device_add(&ide_qua_pnp_device);
+        other_ide_present++;
+        ide_remove_handlers(3);
+    }
 
     gus->compat   = 0x1f;
     gus->dec_ctrl = 0x7f;
     gus->mpu401b  = 0x30;
 
-    /* Always report Revision B (B2 stepping) as seen on all known retail cards. Revision C (C0 stepping) was on Compaq/STB
-       UltraSound 32 cards. The Windows NT drivers bluescreen on rev C due to a bug in the beta driver. */
-    gus->iw_rev = 0x10;
+    /* Compaq/STB UltraSound 32 is Rev C, other models are Rev B */
+    /* NOTE: Windows NT beta drivers bluescreen on Rev C due to a bug */
+    gus->iw_rev = is_compaq ? 0x20 : 0x10;
 
     return gus;
 }
@@ -3695,6 +3716,38 @@ static const device_config_t gus_pnp_config[] = {
     { .name = "", .description = "", .type = CONFIG_END }
 };
 
+static const device_config_t gus_pnp_compaq_config[] = {
+    // clang-format off
+    {
+        .name           = "gus_ram",
+        .description    = "Memory size",
+        .type           = CONFIG_SELECTION,
+        .default_string = "",
+        .default_int    = 2,
+        .file_filter    = "",
+        .spinner        = { 0 },
+        .selection      = {
+            { .description = "512 KB", .value = 1 },
+            { .description = "1 MB",   .value = 2 },
+            { .description = "4 MB",   .value = 4 },
+            { NULL                                }
+        },
+        .bios           = { { 0 } }
+    },
+    {
+        .name           = "receive_input",
+        .description    = "Receive MIDI input",
+        .type           = CONFIG_BINARY,
+        .default_string = NULL,
+        .default_int    = 1,
+        .file_filter    = NULL,
+        .spinner        = { 0 },
+        .selection      = { { 0 } },
+        .bios           = { { 0 } }
+    },
+    { .name = "", .description = "", .type = CONFIG_END }
+};
+
 // clang-format on
 
 const device_t gus_device = {
@@ -3808,4 +3861,32 @@ const device_t gus_pnp_device = {
     .speed_changed = gus_speed_changed,
     .force_redraw  = NULL,
     .config        = gus_pnp_config
+};
+
+const device_t gus_pnp_nocd_device = {
+    .name          = "Gravis UltraSound PNP (No CD-ROM)",
+    .internal_name = "guspnp_nocd",
+    .flags         = DEVICE_ISA16,
+    .local         = GUS_INTERWAVE | 0x10,
+    .init          = gus_pnp_init,
+    .close         = gus_close,
+    .reset         = gus_reset,
+    .available     = NULL,
+    .speed_changed = gus_speed_changed,
+    .force_redraw  = NULL,
+    .config        = gus_pnp_config
+};
+
+const device_t gus_pnp_compaq_device = {
+    .name          = "Compaq/STB UltraSound 32",
+    .internal_name = "guspnp_compaq",
+    .flags         = DEVICE_ISA16,
+    .local         = GUS_INTERWAVE | 0x20,
+    .init          = gus_pnp_init,
+    .close         = gus_close,
+    .reset         = gus_reset,
+    .available     = NULL,
+    .speed_changed = gus_speed_changed,
+    .force_redraw  = NULL,
+    .config        = gus_pnp_compaq_config
 };
