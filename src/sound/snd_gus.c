@@ -843,7 +843,6 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                     break;
 
                 case 0xE:
-                    printf("IW active voice reg set to %02X, enhanced mode %i\n", val, gus->iw_enhanced);
                     gus->gus_avoice = val;
                     gus->voices = (val & 63) + 1;
                     if (gus->voices > 32)
@@ -1172,13 +1171,11 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
                 case 0x5a: /* Decode Control */
                     if (gus->type == GUS_INTERWAVE)
                         gus->dec_ctrl = val;
-                    printf("GUS decode control: val = %02X\n", val);
                     break;
 
                 case 0x5b: /*Version Number */
                     if (gus->type == GUS_INTERWAVE)
                         gus->iveri = (val & 0x0f) | gus->iw_rev;
-                    printf("GUS iveri reg write: val = %02X\n", val);
                     break;
 
                 case 0x5c: /* MPU-401 Emulation Control A */
@@ -1193,7 +1190,6 @@ gus_write(uint16_t addr, uint8_t val, void *priv)
 
                 case 0x60: /* Emulation IRQ */
                     if (gus->type == GUS_INTERWAVE) {
-                        printf("Emulation IRQ write! val = %02X\n", val);
                         gus->emuirq = val & 0xbf;
                         if (val & 0x01)
                             picint(1 << gus->cur_sb_irq);
@@ -2707,10 +2703,6 @@ static void
 gus_pnp_config_changed(const uint8_t ld, isapnp_device_config_t *config, void *priv)
 {
     gus_t    *gus = (gus_t *) priv;
-
-    /* TODO: Find an original PnP dump in the proper format, currently using the PnP ROM from the Beavis Ultrasound repro board */
-
-    printf("PnP config changed!\n");
 
     switch(ld) {
         case 0: /* Synth/Codec */
