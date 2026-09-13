@@ -2131,8 +2131,6 @@ gus_poll_wave(void *priv)
 
         cur_lfo_base = cur_lfo_base | gus->lfo_cur_voice << 5 | gus->lfo_cur_mode << 4; /* Select current LFO for processing */
         uint16_t cur_lfo_ctrl   = gus->ram[cur_lfo_base + 1] << 8 | gus->ram[cur_lfo_base];
-        uint8_t  cur_lfo_dfinal = gus->ram[cur_lfo_base + 2];
-        uint8_t  cur_lfo_dinc   = gus->ram[cur_lfo_base + 3];
         uint16_t cur_lfo_twave0 = gus->ram[cur_lfo_base + 9] << 8 | gus->ram[cur_lfo_base + 8];
         uint16_t cur_lfo_depth0 = gus->ram[cur_lfo_base + 11] << 8 | gus->ram[cur_lfo_base + 10];
         uint16_t cur_lfo_twave1 = gus->ram[cur_lfo_base + 13] << 8 | gus->ram[cur_lfo_base + 12];
@@ -2151,9 +2149,7 @@ gus_poll_wave(void *priv)
             uint16_t cur_ramp_ctrl   = gus->ram[cur_ramp_base + 1] << 8 | gus->ram[cur_ramp_base];
             uint8_t  cur_ramp_dfinal = gus->ram[cur_ramp_base + 2];
             uint8_t  cur_ramp_dinc   = gus->ram[cur_ramp_base + 3];
-            uint16_t cur_ramp_twave0 = gus->ram[cur_ramp_base + 9] << 8 | gus->ram[cur_ramp_base + 8];
             uint16_t cur_ramp_depth0 = gus->ram[cur_ramp_base + 11] << 8 | gus->ram[cur_ramp_base + 10];
-            uint16_t cur_ramp_twave1 = gus->ram[cur_ramp_base + 13] << 8 | gus->ram[cur_ramp_base + 12];
             uint16_t cur_ramp_depth1 = gus->ram[cur_ramp_base + 15] << 8 | gus->ram[cur_ramp_base + 14];
 
             uint8_t  cur_ramp_wselect = cur_ramp_ctrl & 0x4000 >> 14; /* Select twave0/depth0 or twave1/depth1 */
@@ -2779,7 +2775,6 @@ gus_pnp_config_changed(const uint8_t ld, isapnp_device_config_t *config, void *p
             uint8_t old_udci = gus->dma_ctrl & 0xc0;
             uint8_t old_uici = gus->irq_ctrl & 0xc0;
             uint8_t new_irq1 = 0;
-            uint8_t new_irq2 = 0;
             uint8_t new_dma1 = 0;
             uint8_t new_dma2 = 0;
             switch (gus->irq) {
