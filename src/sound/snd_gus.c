@@ -2705,12 +2705,12 @@ gus_get_buffer(int32_t *buffer, uint16_t len, void *priv)
         double temp_l = 0.0;
         double temp_r = 0.0;
         if ((gus->type == GUS_CLASSIC_37) || (gus->type == GUS_MAX)) {
-            temp_l = (double) gus->buffer[0][c >> 1];
-            temp_r = (double) gus->buffer[1][c >> 1];
+            temp_l = (gus_iir(0, 0, (double) gus->buffer[0][c >> 1]));
+            temp_r = (gus_iir(0, 1, (double) gus->buffer[1][c >> 1]));
             if (gus->type == GUS_MAX) {
                 if (gus->max_ctrl) {
-                    buffer[c]     += (int32_t) (gus->ad1848.buffer[c] / 2);
-                    buffer[c + 1] += (int32_t) (gus->ad1848.buffer[c + 1] / 2);
+                    buffer[c]     += (int32_t) (gus_iir(0, 0, (double) (gus->ad1848.buffer[c] / 2)));
+                    buffer[c + 1] += (int32_t) (gus_iir(0, 1, (double) (gus->ad1848.buffer[c + 1] / 2)));
                 }
                 ad1848_filter_channel(&gus->ad1848, AD1848_AUX1, &temp_l, &temp_r);
             } else
@@ -2718,11 +2718,11 @@ gus_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             buffer[c]     += (int32_t) temp_l;
             buffer[c + 1] += (int32_t) temp_r;
         } else if (gus->type == GUS_INTERWAVE) {
-            temp_l = (double) gus->buffer[0][c >> 1];
-            temp_r = (double) gus->buffer[1][c >> 1];
+            temp_l = (double) (gus_iir(0, 0, (double) gus->buffer[0][c >> 1]));
+            temp_r = (double) (gus_iir(0, 1, (double) gus->buffer[1][c >> 1]));
             ad1848_filter_channel(&gus->ad1848, AD1848_AUX1, &temp_l, &temp_r);
-            temp_l += (gus->ad1848.buffer[c] / 16);
-            temp_r += (gus->ad1848.buffer[c + 1] / 16);
+            temp_l += (gus_iir(0, 0, (double) (gus->ad1848.buffer[c] / 16)));
+            temp_r += (gus_iir(0, 1, (double) (gus->ad1848.buffer[c + 1] / 16)));
             if (gus->ad1848.regs[25] & 0x80)
                 temp_l = 0;
             else
@@ -2752,8 +2752,8 @@ gus_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             buffer[c]     += (int32_t) temp_l;
             buffer[c + 1] += (int32_t) temp_r;
         } else {
-            buffer[c]     += (int32_t) gus->buffer[0][c >> 1];
-            buffer[c + 1] += (int32_t) gus->buffer[1][c >> 1];
+            buffer[c]     += (int32_t) (gus_iir(0, 0, (double) gus->buffer[0][c >> 1]));
+            buffer[c + 1] += (int32_t) (gus_iir(0, 1, (double) gus->buffer[1][c >> 1]));
         }
     }
 

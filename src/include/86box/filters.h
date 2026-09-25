@@ -391,6 +391,42 @@ sb_iir(int c, int i, double NewSample)
     return y[c][i][0];
 }
 
+/* fc=12kHz */
+static inline double
+gus_iir(int c, int i, double NewSample)
+{
+    double ACoef[NCoef + 1] = {
+        0.3347839617109087,
+        0.6695679234218174,
+        0.3347839617109087
+    };
+
+
+    double BCoef[NCoef + 1] = {
+        0.17626169089576077,
+        0.16287415594787394,
+        0.17626169089576077
+    };
+
+    static double y[6][2][NCoef + 1]; /* output samples */
+    static double x[6][2][NCoef + 1]; /* input samples */
+    int           n;
+
+    /* shift the old samples */
+    for (n = NCoef; n > 0; n--) {
+        x[c][i][n] = x[c][i][n - 1];
+        y[c][i][n] = y[c][i][n - 1];
+    }
+
+    /* Calculate the new output */
+    x[c][i][0] = NewSample;
+    y[c][i][0] = ACoef[0] * x[c][i][0];
+    for (n = 1; n <= NCoef; n++)
+        y[c][i][0] += ACoef[n] * x[c][i][n] - BCoef[n] * y[c][i][n];
+
+    return y[c][i][0];
+}
+
 #undef NCoef
 #define NCoef      1
 #define SB16_NCoef 51
