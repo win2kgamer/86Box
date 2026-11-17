@@ -39,6 +39,7 @@
 #include <86box/rom.h>
 #include <86box/plat_unused.h>
 #include <86box/log.h>
+#include <86box/filters.h>
 
 #ifdef ENABLE_YMF701_LOG
 int ymf701_do_log = ENABLE_YMF701_LOG;
@@ -324,8 +325,10 @@ ymf701_get_buffer(int32_t *buffer, uint16_t len, void *priv)
 
     /* wss part */
     ad1848_update(&ymf701->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++)
-        buffer[c] += (ymf701->ad1848.buffer[c] / 2);
+    for (uint16_t c = 0; c < len * 2; c += 2) {
+        buffer[c] += (int32_t) (low_fir_ad1848(0, (double) ymf701->ad1848.buffer[c]));
+        buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) ymf701->ad1848.buffer[c + 1]));
+    }
 
     ymf701->ad1848.pos = 0;
 }

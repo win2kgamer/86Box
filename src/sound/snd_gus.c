@@ -3080,8 +3080,8 @@ gus_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             temp_r = (double) gus->buffer[1][c >> 1];
             if (gus->type == GUS_MAX || gus->daughter) {
                 if ((gus->max_ctrl || gus->daughter) && !gf1_mute) {
-                    buffer[c]     += (int32_t) (gus->ad1848.buffer[c] / 2);
-                    buffer[c + 1] += (int32_t) (gus->ad1848.buffer[c + 1] / 2);
+                    buffer[c]     += (int32_t) (low_fir_ad1848(0, (double) (gus->ad1848.buffer[c]))) / 2;
+                    buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) (gus->ad1848.buffer[c + 1]))) / 2;
                 }
                 ad1848_filter_channel(&gus->ad1848, AD1848_AUX1, &temp_l, &temp_r);
             } else
@@ -3094,8 +3094,8 @@ gus_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             temp_l = (double) gus->buffer[0][c >> 1];
             temp_r = (double) gus->buffer[1][c >> 1];
             ad1848_filter_channel(&gus->ad1848, AD1848_AUX1, &temp_l, &temp_r);
-            temp_l += (gus->ad1848.buffer[c] / 16);
-            temp_r += (gus->ad1848.buffer[c + 1] / 16);
+            temp_l += (low_fir_ad1848(0, (double) (gus->ad1848.buffer[c]))) / 16;
+            temp_r += (low_fir_ad1848(1, (double) (gus->ad1848.buffer[c + 1]))) / 16;
             if (gus->ad1848.regs[25] & 0x80)
                 temp_l = 0;
             else

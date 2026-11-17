@@ -30,6 +30,7 @@
 #include <86box/sound.h>
 #include <86box/snd_ad1848.h>
 #include <86box/plat_fallthrough.h>
+#include <86box/filters.h>
 
 #define CS4231 0x80
 #define CS4232 0x02
@@ -107,6 +108,44 @@ ad1848_updatevolmask(ad1848_t *ad1848)
     ad1848_log("AD1848: updatevolmask(%02X)\n", ad1848->wave_vol_mask);
 }
 
+double low_fir_ad1848_coef[SB16_NCoef];
+
+static __inline double
+sinc(double x)
+{
+    return sin(M_PI * x) / (M_PI * x);
+}
+
+static void
+recalc_ad1848_filter(const int playback_freq)
+{
+    /* Cutoff frequency = playback / 2 */
+    int          n;
+    // const double fC = ((double) playback_freq) / (double) FREQ_96000;
+    const double fC = ((double) playback_freq) / (double) (sound_sample_rate << 1);
+
+    for (n = 0; n < SB16_NCoef; n++) {
+        /* Blackman window */
+        const double w = 0.42 - (0.5 * cos((2.0 * n * M_PI) / (double) (SB16_NCoef - 1))) +
+                     (0.08 * cos((4.0 * n * M_PI) / (double) (SB16_NCoef - 1)));
+        /* Sinc filter */
+        const double h = sinc(2.0 * fC * ((double) n - ((double) (SB16_NCoef - 1) / 2.0)));
+
+        /* Create windowed-sinc filter */
+        low_fir_ad1848_coef[n] = w * h;
+    }
+
+    low_fir_ad1848_coef[(SB16_NCoef - 1) / 2] = 1.0;
+
+    double gain = 0.0;
+    for (n = 0; n < SB16_NCoef; n++)
+        gain += low_fir_ad1848_coef[n];
+
+    /* Normalise filter, to produce unity gain */
+    for (n = 0; n < SB16_NCoef; n++)
+        low_fir_ad1848_coef[n] /= gain;
+}
+
 static double
 ad1848_get_default_freq(ad1848_t *ad1848)
 {
@@ -142,6 +181,7 @@ ad1848_get_default_freq(ad1848_t *ad1848)
             break;
     }
 
+    recalc_ad1848_filter(freq);
     ad1848_log("AD1848: Frequency %f through default path\n", freq);
 
     return freq;
@@ -223,6 +263,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
                     break;
             }
 
+            recalc_ad1848_filter(freq);
             ad1848_log("AD1848: Frequency %f through CS4236B+ path\n", freq);
         } else if (ad1848->regs[22] & 0x80) {
             const uint8_t set = (ad1848->regs[22] >> 1) & 0x3f;
@@ -242,6 +283,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
                     break;
             }
 
+            recalc_ad1848_filter(freq);
             ad1848_log("AD1848: Frequency %f through CS4232+ path\n", freq);
         } else
             freq = ad1848_get_default_freq(ad1848);
@@ -251,6 +293,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
         else {
             uint32_t pcs = (ad1848->regs[8] & 1) ? 16934400.0 : 24576000.0;
             freq = pcs / (16 * (48+ad1848->regs[29]));
+            recalc_ad1848_filter(freq);
         }
         rec_freq = ad1848_get_default_rec_freq(ad1848);
     } else

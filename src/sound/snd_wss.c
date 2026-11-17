@@ -32,6 +32,7 @@
 #include <86box/snd_ad1848.h>
 #include <86box/snd_opl.h>
 #include <86box/plat_unused.h>
+#include <86box/filters.h>
 
 /* 530, 11, 3 - 530=23
  * 530, 11, 1 - 530=22
@@ -237,8 +238,10 @@ wss_get_buffer(int32_t *buffer, uint16_t len, void *priv)
     wss_t *wss = (wss_t *) priv;
 
     ad1848_update(&wss->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++)
-        buffer[c] += wss->ad1848.buffer[c] / 2;
+    for (uint16_t c = 0; c < len * 2; c += 2) {
+        buffer[c] += (int32_t) (low_fir_ad1848(0, (double) wss->ad1848.buffer[c]));
+        buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) wss->ad1848.buffer[c + 1]));
+    }
 
     wss->ad1848.pos = 0;
 }

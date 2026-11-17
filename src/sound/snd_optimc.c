@@ -42,6 +42,7 @@
 #include <86box/isapnp.h>
 #include <86box/hdc_ide.h>
 #include <86box/log.h>
+#include <86box/filters.h>
 
 #define PNP_ROM_OPTI931 "roms/sound/opti931/adsrom.bin"
 
@@ -410,12 +411,12 @@ opti930_get_buffer(int32_t *buffer, uint16_t len, void *priv)
     /* wss part */
     opti930_update_mastervol(optimc);
     ad1848_update(&optimc->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++) {
+    for (uint16_t c = 0; c < len * 2; c += 2) {
         double out_l = 0.0;
         double out_r = 0.0;
 
-        out_l = (optimc->ad1848.buffer[c] * optimc->master_l);
-        out_r = (optimc->ad1848.buffer[c + 1] * optimc->master_r);
+        out_l = (low_fir_ad1848(0, (double) optimc->ad1848.buffer[c]) * optimc->master_l);
+        out_r = (low_fir_ad1848(1, (double) optimc->ad1848.buffer[c + 1]) * optimc->master_r);
 
         buffer[c] += (int32_t) out_l;
         buffer[c + 1] += (int32_t) out_r;
@@ -446,8 +447,9 @@ optimc_get_buffer(int32_t *buffer, uint16_t len, void *priv)
 
     /* wss part */
     ad1848_update(&optimc->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++)
-        buffer[c] += (optimc->ad1848.buffer[c] / 2);
+    for (uint16_t c = 0; c < len * 2; c += 2)
+        buffer[c] += (int32_t) (low_fir_ad1848(0, (double) optimc->ad1848.buffer[c]));
+        buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) optimc->ad1848.buffer[c + 1]));
 
     optimc->ad1848.pos = 0;
 }

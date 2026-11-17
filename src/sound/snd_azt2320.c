@@ -41,6 +41,7 @@
 #include <86box/mem.h>
 #include <86box/rom.h>
 #include <86box/isapnp.h>
+#include <86box/filters.h>
 
 #define PNP_ROM_AZT2320 "roms/sound/azt2320/azt2320.bin"
 
@@ -291,8 +292,10 @@ azt2320_get_buffer(int32_t *buffer, uint16_t len, void *priv)
 
     /* wss part */
     ad1848_update(&azt2320->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++)
-        buffer[c] += (azt2320->ad1848.buffer[c] / 2);
+    for (uint16_t c = 0; c < len * 2; c += 2) {
+        buffer[c] += (int32_t) (low_fir_ad1848(0, (double) azt2320->ad1848.buffer[c]));
+        buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) azt2320->ad1848.buffer[c + 1]));
+    }
 
     azt2320->ad1848.pos = 0;
 }

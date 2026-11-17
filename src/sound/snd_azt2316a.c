@@ -166,6 +166,7 @@
 #include <86box/snd_sb.h>
 #include <86box/plat_unused.h>
 #include <86box/log.h>
+#include <86box/filters.h>
 
 #ifdef ENABLE_AZTECH_LOG
 int aztech_do_log = ENABLE_AZTECH_LOG;
@@ -1616,8 +1617,10 @@ azt2316a_get_buffer(int32_t *buffer, uint16_t len, void *priv)
 
     /* wss part */
     ad1848_update(&azt2316a->ad1848);
-    for (uint16_t c = 0; c < len * 2; c++)
-        buffer[c] += (azt2316a->ad1848.buffer[c] / 2);
+    for (uint16_t c = 0; c < len * 2; c += 2) {
+        buffer[c] += (int32_t) (low_fir_ad1848(0, (double) azt2316a->ad1848.buffer[c]));
+        buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) azt2316a->ad1848.buffer[c + 1]));
+    }
 
     azt2316a->ad1848.pos = 0;
 }

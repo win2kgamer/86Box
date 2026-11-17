@@ -80,6 +80,7 @@
 #include <86box/snd_opl.h>
 #include <86box/snd_sb.h>
 #include <86box/plat_unused.h>
+#include <86box/filters.h>
 
 #define MOZART_PASSWORD 0xe2
 
@@ -282,8 +283,8 @@ mozart_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             /* The DSP is mono. */
             const double dsp_out = dsp->buffer[c] / 2.0;
 
-            buffer[c] += (ad1848->buffer[c] / 2) + (int32_t) (dsp_out * dac_l);
-            buffer[c + 1] += (ad1848->buffer[c + 1] / 2) + (int32_t) (dsp_out * dac_r);
+            buffer[c] += (int32_t) (low_fir_ad1848(0, (double) ad1848->buffer[c]) / 2) + (int32_t) (dsp_out * dac_l);
+            buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) ad1848->buffer[c + 1]) / 2) + (int32_t) (dsp_out * dac_r);
         }
     }
 

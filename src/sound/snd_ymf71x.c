@@ -806,8 +806,8 @@ ymf71x_get_buffer(int32_t *buffer, uint16_t len, void *priv)
             double out_r = 0.0;
             double bass_treble;
 
-            out_l += ymf71x->ad1848.buffer[c];
-            out_r += ymf71x->ad1848.buffer[c + 1];
+            out_l += (low_fir_ad1848(0, (double) ymf71x->ad1848.buffer[c]));
+            out_r += (low_fir_ad1848(1, (double) ymf71x->ad1848.buffer[c + 1]));
 
             if ((ymf71x->regs[0x15] & 0x07) != 0x00) {
                 bass_treble = ymf71x_bass_treble_3bits[(ymf71x->regs[0x15] & 0x07)];

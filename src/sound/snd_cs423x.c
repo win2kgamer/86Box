@@ -39,6 +39,7 @@
 #include <86box/snd_sb.h>
 #include <86box/plat_fallthrough.h>
 #include <86box/plat_unused.h>
+#include <86box/filters.h>
 
 #define PNP_ROM_CS4232       "roms/sound/crystal/CS4232.BIN"
 #define PNP_ROM_CS4236B      "roms/sound/crystal/PNPISA01.BIN"
@@ -806,8 +807,8 @@ cs423x_get_buffer(int32_t *buffer, uint16_t len, void *priv)
     /* Don't output anything if the analog section or DAC is powered down. */
     if (!(dev->regs[2] & 0xb4) && !(dev->indirect_regs[9] & 0x04)) {
         for (uint16_t c = 0; c < len * 2; c += 2) {
-            buffer[c] += dev->ad1848.buffer[c] / 2;
-            buffer[c + 1] += dev->ad1848.buffer[c + 1] / 2;
+            buffer[c] += (int32_t) (low_fir_ad1848(0, (double) dev->ad1848.buffer[c])) / 2;
+            buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) dev->ad1848.buffer[c + 1])) / 2;
         }
     }
 
