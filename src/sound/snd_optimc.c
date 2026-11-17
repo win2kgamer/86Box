@@ -447,9 +447,10 @@ optimc_get_buffer(int32_t *buffer, uint16_t len, void *priv)
 
     /* wss part */
     ad1848_update(&optimc->ad1848);
-    for (uint16_t c = 0; c < len * 2; c += 2)
+    for (uint16_t c = 0; c < len * 2; c += 2) {
         buffer[c] += (int32_t) (low_fir_ad1848(0, (double) optimc->ad1848.buffer[c]));
         buffer[c + 1] += (int32_t) (low_fir_ad1848(1, (double) optimc->ad1848.buffer[c + 1]));
+    }
 
     optimc->ad1848.pos = 0;
 }
