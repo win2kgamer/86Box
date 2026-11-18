@@ -181,7 +181,7 @@ ad1848_get_default_freq(ad1848_t *ad1848)
             break;
     }
 
-    recalc_ad1848_filter(freq);
+    recalc_ad1848_filter(freq * 0.5);
     ad1848_log("AD1848: Frequency %f through default path\n", freq);
 
     return freq;
@@ -263,7 +263,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
                     break;
             }
 
-            recalc_ad1848_filter(freq);
+            recalc_ad1848_filter(freq * 0.5);
             ad1848_log("AD1848: Frequency %f through CS4236B+ path\n", freq);
         } else if (ad1848->regs[22] & 0x80) {
             const uint8_t set = (ad1848->regs[22] >> 1) & 0x3f;
@@ -283,7 +283,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
                     break;
             }
 
-            recalc_ad1848_filter(freq);
+            recalc_ad1848_filter(freq * 0.5);
             ad1848_log("AD1848: Frequency %f through CS4232+ path\n", freq);
         } else
             freq = ad1848_get_default_freq(ad1848);
@@ -293,7 +293,7 @@ ad1848_updatefreq(ad1848_t *ad1848)
         else {
             uint32_t pcs = (ad1848->regs[8] & 1) ? 16934400.0 : 24576000.0;
             freq = pcs / (16 * (48+ad1848->regs[29]));
-            recalc_ad1848_filter(freq);
+            recalc_ad1848_filter(freq * 0.5);
         }
         rec_freq = ad1848_get_default_rec_freq(ad1848);
     } else
