@@ -1122,6 +1122,7 @@ extern int             machine_at_pat54pv_init(const machine_t *);
 
 /* OPTi Viper */
 extern int             machine_at_acerm1_init(const machine_t *);
+extern int             machine_at_presario9500_init(const machine_t *);
 extern int             machine_at_bristol_init(const machine_t *);
 extern int             machine_at_g586opa_init(const machine_t *);
 

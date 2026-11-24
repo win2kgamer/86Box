@@ -17100,6 +17100,55 @@ const machine_t machines[] = {
         .ide_device               = &ide_cmd646_device,
         .aliases                  = { "" }
     },
+    /* Has a SM(S)C FDC37C931 Super I/O chip with on-chip KBC with
+       Compaq KBC firmware. */
+    {
+        .name              = "[OPTi Viper] Compaq Presario 95xx",
+        .internal_name     = "presario9500",
+        .type              = MACHINE_TYPE_SOCKET5,
+        .chipset           = MACHINE_CHIPSET_OPTI_VIPER,
+        .init              = machine_at_presario9500_init,
+        .p1_handler        = machine_generic_p1_handler,
+        .gpio_handler      = NULL,
+        .available_flag    = MACHINE_AVAILABLE,
+        .gpio_acpi_handler = NULL,
+        .cpu               = {
+            .package     = CPU_PKG_SOCKET5_7,
+            .block       = CPU_BLOCK_NONE,
+            .min_bus     = 50000000,
+            .max_bus     = 66666667,
+            .min_voltage = 3520,
+            .max_voltage = 3520,
+            .min_multi   = 1.5,
+            .max_multi   = 2.0
+        },
+        .bus_flags = MACHINE_PS2_PCI,
+        .flags     = MACHINE_IDE_DUAL | MACHINE_SUPER_IO | MACHINE_VIDEO | MACHINE_SOUND | MACHINE_GAMEPORT,
+        .ram       = {
+            .min  = 8192,
+            .max  = 139264,
+            .step = 8192
+        },
+        .nvrmask                  = 511,
+        .jumpered_ecp_dma         = MACHINE_DMA_USE_CONFIG,
+        .default_jumpered_ecp_dma = -1,
+        .kbc_device               = NULL,
+        .kbc_params               = 0x00000000,
+        .nvr_device               = NULL,
+        .nvr_params               = 0x00000000,
+        .sio_device               = NULL,
+        .sio_params               = 0x00000000,
+        .kbc_p1                   = 0x00000cf0,
+        .gpio                     = 0xffffffff,
+        .gpio_acpi                = 0xffffffff,
+        .device                   = NULL,
+        .kbd_device               = NULL,
+        .fdc_device               = NULL,
+        .vid_device               = &s3_trio64vplus_onboard_pci_device,
+        .snd_device               = &ess_1788_device,
+        .net_device               = NULL,
+        .aliases                  = { "" }
+    },
     /* This uses a VIA VT82C42N KBC, which is a clone of type 'F' with additional commands.
        It's really an ASIC clone of the Award KBC, which is itself an extended clone of AMI 'F'. */
     {

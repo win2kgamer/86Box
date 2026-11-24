@@ -1193,6 +1193,39 @@ machine_at_bristol_init(const machine_t *model)
 }
 
 int
+machine_at_presario9500_init(const machine_t *model)
+{
+    int ret;
+
+    ret = bios_load_linear("roms/machines/presario9500/586I.BIN",
+                           0x000e0000, 131072, 0);
+
+    if (bios_only || !ret)
+        return ret;
+
+    machine_at_common_init(model);
+
+    pci_init(PCI_CONFIG_TYPE_1);
+    pci_register_slot(0x00, PCI_CARD_NORTHBRIDGE, 0, 0, 0, 0);
+    pci_register_slot(0x01, PCI_CARD_SOUTHBRIDGE, 0, 0, 0, 0);
+    pci_register_slot(0x02, PCI_CARD_VIDEO,       1, 0, 0, 0);
+    pci_register_slot(0x04, PCI_CARD_NORMAL,      4, 0, 4, 0);
+    pci_register_slot(0x05, PCI_CARD_NORMAL,      1, 3, 1, 3);
+    pci_register_slot(0x14, PCI_CARD_IDE,         4, 0, 0, 0);
+    device_add(&opti55x_device);
+    device_add_params(&fdc37c93x_device, (void *) (FDC37XXX1 | FDC37C93X_NORMAL));
+    device_add(&amd_flash_29f010a_device);
+
+    if (gfxcard[0] == VID_INTERNAL)
+        device_add(machine_get_vid_device(machine));
+
+    if (sound_card_current[0] == SOUND_INTERNAL)
+        machine_snd = device_add(machine_get_snd_device(machine));
+
+    return ret;
+}
+
+int
 machine_at_g586opa_init(const machine_t *model)
 {
     int ret;
