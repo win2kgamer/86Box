@@ -148,7 +148,7 @@ fdc37c93x_do_read_gp(fdc37c93x_t *dev, int reg, int bit)
     if ((reg == 2) && !strncmp(machine_get_internal_name(), "acer", 4))
         dev->gpio_pulldn[reg] = (dev->gpio_pulldn[reg] & 0xfb) | (video_is_mda() ? 0x00 : 0x04);
 
-    if ((reg == 1) && !strncmp(machine_get_internal_name(), "presario9500", 12)) {
+    if ((reg == 1) && (!strncmp(machine_get_internal_name(), "presario9500", 12) || !strncmp(machine_get_internal_name(), "presario9600", 12))) {
         uint8_t pulldn_val = 0xff;
         pulldn_val &= 0xfb; /* Bit 2 clear = Presario 9500; set = Presario 5500 */
         /* Bits 7 and 6 select the bus clock */
@@ -164,6 +164,15 @@ fdc37c93x_do_read_gp(fdc37c93x_t *dev, int reg, int bit)
         uint8_t pulldn_val = 0xff;
         if (cpu_dmulti == 2.0)
             pulldn_val &= 0xeb;
+        dev->gpio_pulldn[reg] = dev->gpio_pulldn[reg] & pulldn_val;
+    } else if  ((reg == 2) && !strncmp(machine_get_internal_name(), "presario9600", 12)) {
+        uint8_t pulldn_val = 0xff;
+        if (cpu_dmulti == 3.0)
+            pulldn_val &= 0xef;
+        else if (cpu_dmulti == 2.5)
+            pulldn_val &= 0xeb;
+        else if (cpu_dmulti == 2.0)
+            pulldn_val &= 0xfb;
         dev->gpio_pulldn[reg] = dev->gpio_pulldn[reg] & pulldn_val;
     }
 
