@@ -176,6 +176,17 @@ fdc37c93x_do_read_gp(fdc37c93x_t *dev, int reg, int bit)
         dev->gpio_pulldn[reg] = dev->gpio_pulldn[reg] & pulldn_val;
     }
 
+    if ((reg == 2) && !strncmp(machine_get_internal_name(), "aptivam", 7)) {
+        uint8_t pulldn_val = 0xff;
+        if (cpu_busspeed == 50000000)
+            pulldn_val = 0xff;
+        else if (cpu_busspeed == 60000000)
+            pulldn_val = 0xfe;
+        else
+            pulldn_val = 0xfc;
+        dev->gpio_pulldn[reg] = dev->gpio_pulldn[reg] & pulldn_val;
+    }
+
     return dev->gpio_regs[reg] & dev->gpio_pulldn[reg] & (1 << bit);
 }
 

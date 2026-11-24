@@ -1125,6 +1125,7 @@ extern int             machine_at_acerm1_init(const machine_t *);
 extern int             machine_at_presario9500_init(const machine_t *);
 extern int             machine_at_bristol_init(const machine_t *);
 extern int             machine_at_g586opa_init(const machine_t *);
+extern int             machine_at_aptivam_init(const machine_t *);
 
 /* SiS 501 */
 extern int             machine_at_p54sp4_init(const machine_t *);
