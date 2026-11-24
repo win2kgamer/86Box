@@ -17597,6 +17597,55 @@ const machine_t machines[] = {
         .ide_device               = &ide_cmd640_pci_single_channel_device,
         .aliases                  = { "AST Bravo MS-T", "AST Bravo MS-L", "AST Rattler", "" }
     },
+    /* This has a Compaq PS/2 KBC */
+    {
+        .name              = "[VLSI SuperCore] Compaq Presario 9xx 586",
+        .internal_name     = "presario900586",
+        .type              = MACHINE_TYPE_SOCKET5,
+        .chipset           = MACHINE_CHIPSET_VLSI_SUPERCORE,
+        .init              = machine_at_presario900586_init,
+        .p1_handler        = machine_generic_p1_handler,
+        .gpio_handler      = NULL,
+        .available_flag    = MACHINE_AVAILABLE,
+        .gpio_acpi_handler = NULL,
+        .cpu               = {
+            .package     = CPU_PKG_SOCKET5_7,
+            .block       = CPU_BLOCK(CPU_Cx6x86),
+            .min_bus     = 50000000,
+            .max_bus     = 66666667,
+            .min_voltage = 3520,
+            .max_voltage = 3520,
+            .min_multi   = 1.5,
+            .max_multi   = 2.0
+        },
+        .bus_flags = MACHINE_PS2_PCI,
+        .flags     = MACHINE_IDE_DUAL | MACHINE_APM | MACHINE_VIDEO | MACHINE_SOUND,
+        .ram       = {
+            .min  = 8192,
+            .max  = 131072,
+            .step = 4096
+        },
+        .nvrmask                  = 127,
+        .jumpered_ecp_dma         = MACHINE_DMA_USE_CONFIG,
+        .default_jumpered_ecp_dma = -1,
+        .kbc_device               = &kbc_at_device,
+        .kbc_params               = KBC_VEN_COMPAQ,
+        /* NVR is on the chipset. */
+        .nvr_device               = NULL,
+        .nvr_params               = 0x00000000,
+        .sio_device               = NULL,
+        .sio_params               = 0x00000000,
+        .kbc_p1                   = 0x00000cf0,
+        .gpio                     = 0xffffffff,
+        .gpio_acpi                = 0xffffffff,
+        .device                   = NULL,
+        .kbd_device               = NULL,
+        .fdc_device               = NULL,
+        .vid_device               = &gd5434_onboard_pci_device,
+        .snd_device               = &ess_688_device,
+        .net_device               = NULL,
+        .aliases                  = { "Compaq Presario 7xx 586", "" }
+    },
     /* KBC firmware is unknown. No commands outside of the base PS/2 */
     /* KBC command set are used. */
     {

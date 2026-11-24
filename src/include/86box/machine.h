@@ -1143,6 +1143,7 @@ extern int             machine_at_hot539_init(const machine_t *);
 extern const device_t  bravoms586_device;
 #endif
 extern int             machine_at_bravoms586_init(const machine_t *);
+extern int             machine_at_presario900586_init(const machine_t *);
 #ifdef EMU_DEVICE_H
 extern const device_t  m54si_device;
 #endif
