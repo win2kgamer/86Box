@@ -799,7 +799,7 @@ fdc37c93x_fdc_handler(fdc37c93x_t *dev)
 {
     const uint8_t enable = !!dev->ld_regs[0][0x30];
 
-    dev->fdc_base = make_port(dev, 0) & 0xfff8;
+    dev->fdc_base = enable ? (make_port(dev, 0) & 0xfff8) : 0;
 
     fdc_remove(dev->fdc);
 
