@@ -193,8 +193,6 @@ load_global_emulator(void)
 
     chd_precache_level = ini_section_get_int(cat, "chd_precache_level", 0);
 
-    fast_forward_new_machines = !!ini_section_get_int(cat, "fast_forward_new_machines", 0);
-
     p = ini_section_get_string(cat, "vmm_path", NULL);
     if (p != NULL) {
         /* Convert relative paths to absolute in portable mode */
@@ -452,7 +450,6 @@ load_general(void)
     }
 
     force_constant_mouse = ini_section_get_int(cat, "force_constant_mouse", 0);
-    fast_forward_on_start = !!ini_section_get_int(cat, "fast_forward_on_start", 0);
     pause_on_sleep        = !!ini_section_get_int(cat, "pause_on_sleep", 1);
     fdd_sounds_enabled = ini_section_get_int(cat, "fdd_sounds_enabled", 1);
 
@@ -1026,6 +1023,33 @@ load_sound(void)
     ini_section_t cat = ini_find_section(config, "Sound");
     char          temp[512];
     char         *p;
+
+    /* Migrate the separate AWE64D models to the model setting of one card. */
+    static const struct {
+        const char *internal_name;
+        int         model;
+    } awe64d_models[] = {
+        { "emu8008_ct4600", 0x0010 },
+        { "emu8008_ct4650", 0x0030 },
+        { "emu8008_ct4655", 0x0031 }
+    };
+    for (int i = 0; i < SOUND_CARD_MAX; i++) {
+        if (i)
+            sprintf(temp, "sndcard%i", i + 1);
+        else
+            strcpy(temp, "sndcard");
+        p = ini_section_get_string(cat, temp, NULL);
+        if (p == NULL)
+            continue;
+        for (int j = 0; j < (sizeof(awe64d_models) / sizeof(awe64d_models[0])); j++) {
+            if (strcmp(p, awe64d_models[j].internal_name))
+                continue;
+            ini_section_set_string(cat, temp, "sb_awe64d");
+            sprintf(temp, "Sound Blaster AWE64D #%i", i + 1);
+            ini_section_set_int(ini_find_or_create_section(config, temp), "model", awe64d_models[j].model);
+            break;
+        }
+    }
 
     p = ini_section_get_string(cat, "sndcard", NULL);
     if (p != NULL)
@@ -3238,7 +3262,6 @@ config_load(void)
         machine              = machine_get_machine_from_internal_name("ibmpc");
         dpi_scale            = 1;
         force_constant_mouse = 0;
-        fast_forward_on_start = fast_forward_new_machines;
         pause_on_sleep        = 1;
 
         cpu_override_interpreter = 0;
@@ -3449,11 +3472,6 @@ save_global_emulator(void)
         ini_section_set_int(cat, "chd_precache_level", chd_precache_level);
     else
         ini_section_delete_var(cat, "chd_precache_level");
-
-    if (fast_forward_new_machines)
-        ini_section_set_int(cat, "fast_forward_new_machines", fast_forward_new_machines);
-    else
-        ini_section_delete_var(cat, "fast_forward_new_machines");
 
     if (vmm_disabled != 0)
         ini_section_set_int(cat, "vmm_disabled", vmm_disabled);
@@ -3735,11 +3753,6 @@ save_general(void)
         ini_section_set_int(cat, "force_constant_mouse", force_constant_mouse);
     else
         ini_section_delete_var(cat, "force_constant_mouse");
-
-    if (fast_forward_on_start)
-        ini_section_set_int(cat, "fast_forward_on_start", fast_forward_on_start);
-    else
-        ini_section_delete_var(cat, "fast_forward_on_start");
 
     if (pause_on_sleep)
         ini_section_delete_var(cat, "pause_on_sleep");

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2026-11-23 19:22+0000\n"
+"PO-Revision-Date: 2026-11-25 08:50+0000\n"
 "Last-Translator: BlueRain-debug <bluerain.debug@gmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://weblate.86box.net/"
 "projects/86box/86box/zh_Hans/>\n"
@@ -275,7 +275,7 @@ msgid "&MT-32 Reset"
 msgstr "重置MT-32(&M)"
 
 msgid "All &notes off"
-msgstr ""
+msgstr "关闭所有备注(&N)"
 
 msgid "Show MIDI &LCD"
 msgstr "显示MIDI &LCD"
@@ -782,7 +782,7 @@ msgid "IDE Conflict"
 msgstr "IDE冲突"
 
 msgid "These IDE controllers need channels that another device already has, and will not work:"
-msgstr ""
+msgstr "以下IDE控制器所需的通道资源已被其他设备占用，无法正常工作："
 
 msgid "Do you want to save the configuration anyway?"
 msgstr "确定仍然保存配置吗？"
@@ -1148,7 +1148,7 @@ msgid "An Intel 82365SL-compatible PC Card (PCMCIA) controller with two sockets,
 msgstr ""
 
 msgid "Network:"
-msgstr ""
+msgstr "网络："
 
 msgid "Socket %1"
 msgstr ""
@@ -1329,7 +1329,7 @@ msgid "&MD DATA %1 (%2): %3"
 msgstr ""
 
 msgid "MD DATA %1 (%2): %3"
-msgstr ""
+msgstr "MD DATA %1 (%2): %3"
 
 msgid "Welcome to 86Box!"
 msgstr "欢迎使用 86Box！"
@@ -1389,40 +1389,40 @@ msgid "Video card \"%s\""
 msgstr ""
 
 msgid "Keyboard \"%s\""
-msgstr ""
+msgstr "键盘“%s”"
 
 msgid "Mouse \"%s\""
-msgstr ""
+msgstr "鼠标“%s”"
 
 msgid "Tablet \"%s\""
-msgstr ""
+msgstr "数位板“%s”"
 
 msgid "Joystick \"%s\""
 msgstr ""
 
 msgid "Sound card \"%s\""
-msgstr ""
+msgstr "声卡“%s”"
 
 msgid "MIDI output device \"%s\""
-msgstr ""
+msgstr "MIDI输出设备“%s”"
 
 msgid "MIDI input device \"%s\""
-msgstr ""
+msgstr "MIDI输入设备“%s”"
 
 msgid "Network card \"%s\""
-msgstr ""
+msgstr "网卡“%s”"
 
 msgid "Serial port device \"%s\""
-msgstr ""
+msgstr "串口设备“%s”"
 
 msgid "Parallel port device \"%s\""
-msgstr ""
+msgstr "并口设备“%s”"
 
 msgid "Game port \"%s\""
 msgstr ""
 
 msgid "SCSI card \"%s\""
-msgstr ""
+msgstr "SCSI卡“%s”"
 
 msgid "Floppy controller \"%s\""
 msgstr ""
@@ -1871,11 +1871,11 @@ msgstr "关机"
 msgid "Power &off"
 msgstr "关机(&O)"
 
-msgid "Softw&are shutdown"
-msgstr ""
+msgid "Suspen&d"
+msgstr "暂停(&D)"
 
-msgid "Software shutdown"
-msgstr ""
+msgid "Suspend"
+msgstr "暂停"
 
 msgid "Powering off the emulated machine may cause data loss. Are you sure you want to continue?"
 msgstr "直接关机可能导致数据丢失，确定要继续吗？"
@@ -3730,7 +3730,7 @@ msgid "Dark"
 msgstr "暗色"
 
 msgid "Style:"
-msgstr ""
+msgstr "样式："
 
 msgid "Windows 11"
 msgstr ""
@@ -3755,18 +3755,6 @@ msgstr "允许重编译(&A)"
 
 msgid "&Fast forward"
 msgstr "快进(&F)"
-
-msgid "Fast forward at startup"
-msgstr "在启动时快进"
-
-msgid "Start new machines in fast forward"
-msgstr "在开始新机器时快进"
-
-msgid "Only affects machines created from now on. Each machine can be changed in its settings, under Machine > Performance."
-msgstr ""
-
-msgid "Fast forward at &startup"
-msgstr "启动时快进(&S)"
 
 msgid "Fast forward"
 msgstr "快进"
@@ -4275,7 +4263,7 @@ msgid "Instruction"
 msgstr "指令"
 
 msgid "Note"
-msgstr ""
+msgstr "备注"
 
 msgid "Double-click a line to set or clear a breakpoint there"
 msgstr "双击某行可在该地址设置或清除断点"
@@ -4320,7 +4308,7 @@ msgid "Stopped: %1"
 msgstr ""
 
 msgid "The emulator is busy; the view was not updated."
-msgstr ""
+msgstr "模拟器正忙，视图未更新。"
 
 msgid "Stopped at a breakpoint."
 msgstr "已在断点处停止。"
@@ -4329,19 +4317,19 @@ msgid "Stopped after stepping."
 msgstr ""
 
 msgid "Stopped."
-msgstr ""
+msgstr "已停止。"
 
 msgid "Stepping…"
 msgstr ""
 
 msgid "Running."
-msgstr ""
+msgstr "正在运行。"
 
 msgid "The emulator is paused; resume it to run or step."
 msgstr ""
 
 msgid "The dynamic recompiler is off while this window is open."
-msgstr ""
+msgstr "当此窗口打开时动态重编译已被禁用。"
 
 msgid "Enter an address."
 msgstr "请输入一个地址。"
@@ -4350,16 +4338,16 @@ msgid "The selector cannot be looked up."
 msgstr ""
 
 msgid "Unknown segment \"%1\"."
-msgstr ""
+msgstr "未知段“%1”。"
 
 msgid "Unknown offset \"%1\"."
-msgstr ""
+msgstr "未知偏移量“%1”。"
 
 msgid "The linear address is not mapped to physical memory."
-msgstr ""
+msgstr "线性地址未被映射到物理内存。"
 
 msgid "\"%1\" is not an address or a register."
-msgstr ""
+msgstr "“%1”不是一个地址或寄存器。"
 
 msgid "Usage: %1"
 msgstr "用法：%1"
@@ -4690,7 +4678,7 @@ msgid "Plug in %1 (%2)"
 msgstr ""
 
 msgid "&Move %1 to"
-msgstr ""
+msgstr "将%1移动至(&M)"
 
 msgid "Size:"
 msgstr "容量："

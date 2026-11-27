@@ -297,9 +297,7 @@ extern const device_t sb_awe64_value_device;
 extern const device_t sb_awe64_device;
 extern const device_t sb_awe64_ide_device;
 extern const device_t sb_awe64_gold_device;
-extern const device_t emu8008_ct4600_device;
-extern const device_t emu8008_ct4650_device;
-extern const device_t emu8008_ct4655_device;
+extern const device_t sb_awe64d_device;
 
 /* Crystal CS423x */
 extern const device_t cs4232_device;
@@ -365,6 +363,9 @@ extern const device_t gus_pnp_compaq_device;
 
 /* IBM M-ACPA/A (Audio Capture & Playback Adapter) */
 extern const device_t acpa_mca_device;
+
+/* IBM PS/2 Speech Adapter */
+extern const device_t ibm_speech_device;
 
 /* IBM Music Feature Card */
 extern const device_t imfc_device;

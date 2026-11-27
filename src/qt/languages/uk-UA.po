@@ -1909,10 +1909,10 @@ msgstr "Вимкнути живлення"
 msgid "Power &off"
 msgstr "Вимкнути &живлення"
 
-msgid "Softw&are shutdown"
+msgid "Suspen&d"
 msgstr ""
 
-msgid "Software shutdown"
+msgid "Suspend"
 msgstr ""
 
 msgid "Powering off the emulated machine may cause data loss. Are you sure you want to continue?"
@@ -3777,20 +3777,6 @@ msgstr "&Дозволити рекомпіляцію"
 
 msgid "&Fast forward"
 msgstr "&Перемотування вперед"
-
-msgid "Fast forward at startup"
-msgstr "Перемотування вперед при запуску"
-
-msgid "Start new machines in fast forward"
-msgstr "Запустити нові машини в режимі перемотування вперед"
-
-msgid "Only affects machines created from now on. Each machine can be changed in its settings, under Machine > Performance."
-msgstr ""
-"Стосується лише щойно створених машин. Кожну машину можна змінити в її "
-"налаштуванні, під вкладкою \"Машина\" > \"Продуктивність\"."
-
-msgid "Fast forward at &startup"
-msgstr "Перемотування вперед при зап&уску"
 
 msgid "Fast forward"
 msgstr "Перемотування вперед"
